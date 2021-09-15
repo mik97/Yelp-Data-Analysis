@@ -6,7 +6,8 @@ import dataset_handler
 
 
 def main():
-    dataset_handler.initDataset('review')
+    review_df = dataset_handler.initDataset('review')
+    dataset_handler.analyze(review_df, 'review')
 
 if __name__ == "__main__":
     main()
