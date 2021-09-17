@@ -73,9 +73,6 @@ def analyze(df, type):
         
         saveFigure(savePath + "posNegSentimentCount.jpg")
        
-        
-            
-
 def checkPlotFolder(type = None):
     directory_to_create = const.plotsPath
 
@@ -92,6 +89,8 @@ def checkPlotFolder(type = None):
 
 def saveFigure(filepath):
     try:
+        if os.path.exists(filepath):
+            os.remove(filepath)
         plt.savefig(filepath)
     except FileNotFoundError:
         print('%s not found'%filepath)
