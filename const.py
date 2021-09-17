@@ -10,3 +10,4 @@ filesPath = {
 
 # path for pickled file
 pklPath = "./data/"
+plotsPath = "./plots"

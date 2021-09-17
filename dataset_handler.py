@@ -55,10 +55,43 @@ def initDataset(type):
     return df_toRet
 
 def analyze(df, type):
+    #  create the folder where to save the plots
+    # checkPlotFolder()
+
     if (type == 'review'):
+        checkPlotFolder('review')
+        savePath = const.plotsPath + '/review/'
+
         # how many sample for each stars rating
 
 
         # how many positive or negative samples
-        pass
+        sentValues = df['sentiment'].value_counts().sort_index()
 
+        plt.bar(['negative', 'positive'], sentValues)
+        plt.title("Positive and negative sentiment count")
+        
+        saveFigure(savePath + "posNegSentimentCount.jpg")
+       
+        
+            
+
+def checkPlotFolder(type = None):
+    directory_to_create = const.plotsPath
+
+    if (type):
+        directory_to_create +=  '/%s'%type
+
+    if (not os.path.exists(directory_to_create)):
+        try:
+            os.makedirs(directory_to_create)
+        except OSError:
+            print("Creation of the directory %s failed" % directory_to_create)
+        else: 
+            print("Successfully created of the directory %s" % directory_to_create)
+
+def saveFigure(filepath):
+    try:
+        plt.savefig(filepath)
+    except FileNotFoundError:
+        print('%s not found'%filepath)
