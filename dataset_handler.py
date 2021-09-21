@@ -68,7 +68,7 @@ def analyze(df, type):
         # how many positive or negative samples
         sentValues = df['sentiment'].value_counts().sort_index()
 
-        plt.bar(['negative', 'positive'], sentValues)
+        plt.bar(['negative', 'positive'], sentValues, width= 0.5)
         plt.title("Positive and negative sentiment count")
         
         saveFigure(savePath + "posNegSentimentCount.jpg")
@@ -94,3 +94,4 @@ def saveFigure(filepath):
         plt.savefig(filepath)
     except FileNotFoundError:
         print('%s not found'%filepath)
+    plt.clf()
