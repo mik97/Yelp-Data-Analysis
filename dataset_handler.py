@@ -1,9 +1,13 @@
 import os
 import time
+
+from pandas.core.series import Series
 import const
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+
 
 def initDataset(type):
     '''
@@ -13,16 +17,17 @@ def initDataset(type):
             type (string): "business", "checkin", "review", "tip" or "user".
     '''
     start_time = time.time()
-    
+
     df_toRet = []
-    pkl_filepath = const.pklPath + type +'_data.pkl'
-    
+    pkl_filepath = const.pklPath + type + '_data.pkl'
+
     if os.path.exists(pkl_filepath):
         print("Unpickling existing file . . .")
 
         df_toRet = pd.read_pickle(pkl_filepath)
 
-        print("File unpickled in {0} minutes".format((time.time() - start_time)/60))
+        print("File unpickled in {0} minutes".format(
+            (time.time() - start_time)/60))
     else:
         print("Loading file . . .")
         total = []
@@ -41,18 +46,20 @@ def initDataset(type):
 
             index = index + 1
 
-        df_toRet = pd.concat(total, ignore_index= True)
+        df_toRet = pd.concat(total, ignore_index=True)
 
         print("File loaded {0} minutes".format((time.time() - start_time)/60))
-        
+
         # pickle the file if not already picklef
         pd.to_pickle(df_toRet, pkl_filepath)
-    
-    print("Loaded file with {0} rows and {1} columns".format(df_toRet.shape[0], df_toRet.shape[1]))
-    
+
+    print("Loaded file with {0} rows and {1} columns".format(
+        df_toRet.shape[0], df_toRet.shape[1]))
+
     print(df_toRet[['stars', 'sentiment']].head(10))
 
     return df_toRet
+
 
 def analyze(df, type):
     #  create the folder where to save the plots
@@ -63,29 +70,37 @@ def analyze(df, type):
         savePath = const.plotsPath + '/review/'
 
         # how many sample for each stars rating
+        starsCounted = df["stars"].value_counts().sort_index()
 
+        plt.bar(['1', '2', '3', '4', '5'], starsCounted)
+        plt.title("Review ratings count")
+
+        saveFigure(savePath + "reviewRatingsCount.jpg")
 
         # how many positive or negative samples
         sentValues = df['sentiment'].value_counts().sort_index()
 
-        plt.bar(['negative', 'positive'], sentValues, width= 0.5)
+        plt.bar(['negative', 'positive'], sentValues, width=0.5)
         plt.title("Positive and negative sentiment count")
-        
+
         saveFigure(savePath + "posNegSentimentCount.jpg")
-       
-def checkPlotFolder(type = None):
+
+
+def checkPlotFolder(type=None):
     directory_to_create = const.plotsPath
 
     if (type):
-        directory_to_create +=  '/%s'%type
+        directory_to_create += '/%s' % type
 
     if (not os.path.exists(directory_to_create)):
         try:
             os.makedirs(directory_to_create)
         except OSError:
             print("Creation of the directory %s failed" % directory_to_create)
-        else: 
-            print("Successfully created of the directory %s" % directory_to_create)
+        else:
+            print("Successfully created of the directory %s" %
+                  directory_to_create)
+
 
 def saveFigure(filepath):
     try:
@@ -93,5 +108,5 @@ def saveFigure(filepath):
             os.remove(filepath)
         plt.savefig(filepath)
     except FileNotFoundError:
-        print('%s not found'%filepath)
+        print('%s not found' % filepath)
     plt.clf()
