@@ -70,10 +70,13 @@ def analyze(df, type):
         savePath = const.plotsPath + '/review/'
 
         # how many sample for each stars rating
-        starsCounted = df["stars"].value_counts()
-        starsCounted = starsCounted.sort_index()
+        starsCounted = df["stars"].value_counts().sort_index()
+
         plt.bar(['1', '2', '3', '4', '5'], starsCounted)
-        plt.show()
+        plt.title("Review ratings count")
+
+        saveFigure(savePath + "reviewRatingsCount.jpg")
+
         # how many positive or negative samples
         sentValues = df['sentiment'].value_counts().sort_index()
 
@@ -106,3 +109,4 @@ def saveFigure(filepath):
         plt.savefig(filepath)
     except FileNotFoundError:
         print('%s not found' % filepath)
+    plt.clf()
