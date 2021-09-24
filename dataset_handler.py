@@ -1,12 +1,10 @@
 import os
 import time
-
-from pandas.core.series import Series
 import const
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+from sklearn.utils import shuffle
 
 
 def initDataset(type):
@@ -55,8 +53,6 @@ def initDataset(type):
 
     print("Loaded file with {0} rows and {1} columns".format(
         df_toRet.shape[0], df_toRet.shape[1]))
-
-    print(df_toRet[['stars', 'sentiment']].head(10))
 
     return df_toRet
 
@@ -110,3 +106,14 @@ def saveFigure(filepath):
     except FileNotFoundError:
         print('%s not found' % filepath)
     plt.clf()
+
+
+def get_balanced_subset(data, col):
+    if(col == 'sentiment'):
+        negSamples = data[data[col] == 0.0].sample(n=500000)
+        posSamples = data[data[col] == 1.0].sample(n=500000)
+
+        final_df = shuffle(
+            pd.concat([negSamples, posSamples])).reset_index(drop=True)
+        print(final_df)
+        return final_df
