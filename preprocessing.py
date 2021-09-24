@@ -3,26 +3,42 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 # from gensim.utils import lemmatize
 from nltk.stem import WordNetLemmatizer
+import nltk
+# nltk.download('stopwords')
+# nltk.download('wordnet')
 
+
+def text_pipeline(sentences):
+    # casing the characters
+    mod_sentences = to_lower(sentences)
+    # handling contracted forms
+    mod_sentences = mod_sentences.apply(decontract)
+    
+    tokens = get_tokens(mod_sentences)
+    # remove stopwords and non alpha num characters
+    tokens = remove_stopwords_and_noalpha(tokens)
+
+    # lemmatize
+    lemm = to_lemmas(tokens)
 
 def to_lower(data):
-    return data['text'].map(lambda txt: txt.lower())
+    return data.map(lambda txt: txt.lower())
 
 
-def decontract(data):
+def decontract(sentence):
     # specific
-    data = re.sub(r"won\'t", "will not", data)
-    data = re.sub(r"can\'t", "cannot", data)
+    sentence = re.sub(r"won\'t", "will not", sentence)
+    sentence = re.sub(r"can\'t", "cannot", sentence)
 
     # general
-    data = re.sub(r"n\'t", " not", data)
-    data = re.sub(r"\'re", " are", data)
-    data = re.sub(r"\'d", " would", data)
-    data = re.sub(r"\'ll", " will", data)
-    data = re.sub(r"\'ve", " have", data)
-    data = re.sub(r"\'m", " am", data)
+    sentence = re.sub(r"n\'t", " not", sentence)
+    sentence = re.sub(r"\'re", " are", sentence)
+    sentence = re.sub(r"\'d", " would", sentence)
+    sentence = re.sub(r"\'ll", " will", sentence)
+    sentence = re.sub(r"\'ve", " have", sentence)
+    sentence = re.sub(r"\'m", " am", sentence)
 
-    return data
+    return sentence
 
 
 def get_tokens(data):
