@@ -3,8 +3,12 @@
 # File unpickled in 1.1141046166419983 minutes
 
 import os
-import const
 import dataset_handler as dh
+from os import path
+from time import time
+import pandas as pd
+import preprocessing
+
 
 def main():
     review_dataset_tasks()
@@ -36,7 +40,25 @@ def task1_pipeline(data):
     # pipeline
     test_data = balanced_df.head(100)
 
+    df = pd.read_csv("./test.csv")
+    print(df)
+    start_time = time()
 
+    texts = preprocessing.to_lower(df)
+    print(texts)
+    texts = texts.apply(preprocessing.decontract)
+    print(texts)
+    tokens = preprocessing.get_tokens(texts)
+    print("%s seconds" % (time() - start_time))
+    # print(tokens[1])
+    # lowerTokens = list(map(preprocessing.toLowerCase, tokens))
+    # print(lowerTokens[1])
+    start_time = time()
+    stop_words = preprocessing.remove_stopwords_and_noalpha(tokens)
+    print("%s seconds" % (time() - start_time))
+    print(stop_words)
+    lemm = preprocessing.to_lemmas(stop_words)
+    print(lemm)
 
 
 if __name__ == "__main__":
