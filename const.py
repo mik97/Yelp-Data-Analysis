@@ -9,5 +9,14 @@ filesPath = {
 }
 
 # path for pickled file
-pklPath = "./data/"
-plotsPath = "./plots"
+pkl_path = "./data/data_"
+balanced_csv_path = "./balanced_dataset/dataset_"
+plots_path = "./plots"
+
+# files name
+# balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv', './balanced_dataset/dataset_stars.csv']
+balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv']
+
+
+# first execute
+first_exec = True
