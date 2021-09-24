@@ -5,6 +5,8 @@ import const
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from sklearn.utils import shuffle
+
 def initDataset(type):
     '''
         Load the entire dataset and pickle it or read it directly from an existing file containing a pickled dataframe.
@@ -15,7 +17,7 @@ def initDataset(type):
     start_time = time.time()
     
     df_toRet = []
-    pkl_filepath = const.pklPath + type +'_data.pkl'
+    pkl_filepath = const.pkl_path + type +'.pkl'
     
     if os.path.exists(pkl_filepath):
         print("Unpickling existing file . . .")
@@ -49,10 +51,33 @@ def initDataset(type):
         pd.to_pickle(df_toRet, pkl_filepath)
     
     print("Loaded file with {0} rows and {1} columns".format(df_toRet.shape[0], df_toRet.shape[1]))
-    
-    print(df_toRet[['stars', 'sentiment']].head(10))
 
     return df_toRet
+
+def get_balanced_subset(data, col):
+    if (col == "sentiment"):
+        final_df = None
+
+        csv_filepath = const.balanced_csv_path + col +'.csv'
+
+        if (os.path.exists(csv_filepath)):
+            print("Read existing csv ", csv_filepath)
+            final_df = pd.read_csv(csv_filepath)
+        else:
+            print("Creating new csv", csv_filepath)
+            negSamples = data.loc[data['sentiment'] == 0].sample(500_000)
+            posSamples = data.loc[data['sentiment'] == 1].sample(500_000)
+            
+            final_df = shuffle(pd.concat([negSamples,posSamples])).reset_index()
+
+            final_df.to_csv(csv_filepath)
+
+        return final_df
+
+    
+
+
+
 
 def analyze(df, type):
     #  create the folder where to save the plots
@@ -60,7 +85,7 @@ def analyze(df, type):
 
     if (type == 'review'):
         checkPlotFolder('review')
-        savePath = const.plotsPath + '/review/'
+        savePath = const.plots_path + '/review/'
 
         # how many sample for each stars rating
 
@@ -74,7 +99,7 @@ def analyze(df, type):
         saveFigure(savePath + "posNegSentimentCount.jpg")
        
 def checkPlotFolder(type = None):
-    directory_to_create = const.plotsPath
+    directory_to_create = const.plots_path
 
     if (type):
         directory_to_create +=  '/%s'%type
@@ -93,5 +118,7 @@ def saveFigure(filepath):
             os.remove(filepath)
         plt.savefig(filepath)
     except FileNotFoundError:
-        print('%s not found'%filepath)
+        print('%s not found' % filepath)
     plt.clf()
+
+
