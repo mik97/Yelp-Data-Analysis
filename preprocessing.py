@@ -1,25 +1,38 @@
+import os
 import re
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 # from gensim.utils import lemmatize
 from nltk.stem import WordNetLemmatizer
-import nltk
+import pickle
+from gensim.models import Word2Vec
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
 
 def text_pipeline(sentences):
-    # casing the characters
-    mod_sentences = to_lower(sentences)
-    # handling contracted forms
-    mod_sentences = mod_sentences.apply(decontract)
-    
-    tokens = get_tokens(mod_sentences)
-    # remove stopwords and non alpha num characters
-    tokens = remove_stopwords_and_noalpha(tokens)
+    if not os.path.exists('./data/lemmas.pkl'):
+        # casing the characters
+        mod_sentences = to_lower(sentences)
+        # handling contracted forms
+        mod_sentences = mod_sentences.apply(decontract)
 
-    # lemmatize
-    lemm = to_lemmas(tokens)
+        tokens = get_tokens(mod_sentences)
+        # remove stopwords and non alpha num characters
+        tokens = remove_stopwords_and_noalpha(tokens)
+
+        # lemmatize
+        lemm = to_lemmas(tokens)
+
+        with open('./data/lemmas.pkl', 'wb') as file:
+            pickle.dump(lemm, file)
+
+    else:
+        with open('./data/lemmas.pkl', 'rb') as file:
+            lemm = pickle.load(file)
+
+    return lemm
+
 
 def to_lower(data):
     return data.map(lambda txt: txt.lower())
@@ -62,8 +75,21 @@ def remove_stopwords_and_noalpha(data):
 
 def to_lemmas(data):
     toRet = []
-    # for array in data:
-    #     toRet.append(lemmatize(array))
+
     wml = WordNetLemmatizer()
-    toRet.append(wml.lemmatize('went'))
+
+    for array in data:
+        toRet.append([wml.lemmatize(word) for word in array])
+
     return toRet
+
+
+def get_word_embedding(sentences):
+    if not os.path.exists('./data/model.bin'):
+        model = Word2Vec(sentences, min_count=1)
+        model.save('./data/model.bin')
+        print('Model saved succesfully!')
+    else:
+        model = Word2Vec.load('./data/model.bin')
+
+    return model
