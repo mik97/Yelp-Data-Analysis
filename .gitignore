@@ -1,9 +1,9 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# C extensions
 data/
 plots/
 balanced_dataset/
+w2v_models/
 
 test.csv

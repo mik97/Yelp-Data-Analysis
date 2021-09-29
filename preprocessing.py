@@ -15,37 +15,38 @@ from nltk.stem import WordNetLemmatizer
 # nltk.download('wordnet')
 
 
-def text_pipeline(sentences = None):
+def preprocess_text(sentences, name=''):
+    print('Cleaning the sentences...')
+    # casing the characters
+    mod_sentences = to_lower(sentences)
+    print('Decontracted the contracted forms...')
+    # handling contracted forms
+    mod_sentences = mod_sentences.apply(decontract)
 
-    if sentences or not os.path.exists('./data/lemmas.pkl'):
-        print('Cleaning the sentences...')
-        # casing the characters
-        mod_sentences = to_lower(sentences)
-        print('Decontracted the contracted forms...')
-        # handling contracted forms
-        mod_sentences = mod_sentences.apply(decontract)
+    print('Getting tokens...')
+    tokens = get_tokens(mod_sentences)
+    print('Removing stopwords and non alpha words...')
+    # remove stopwords and non alpha num characters
+    tokens = remove_stopwords_and_noalpha(tokens)
+    # lemmatize
+    print('Lemmatizing...')
+    lemm = to_lemmas(tokens)
 
-        print('Getting tokens...')
-        tokens = get_tokens(mod_sentences)
-        print('Removing stopwords and non alpha words...')
-        # remove stopwords and non alpha num characters
-        tokens = remove_stopwords_and_noalpha(tokens)
-        # lemmatize
-        print('Lemmatizing...')
-        lemm = to_lemmas(tokens)
-
-        with open('./data/lemmas.pkl', 'wb') as file:
-            pickle.dump(lemm, file)
-
-    else:
-        with open('./data/lemmas.pkl', 'rb') as file:
-            start_time = time()
-            print('Open cleaned tokens file . . .')
-            lemm = pickle.load(file)
-            print('. . . tokens loaded in {0}'.format((time() - start_time)/60))
+    with open('./data/tokens_{0}.pkl'.format(name), 'wb') as file:
+        pickle.dump(lemm, file)
 
     return lemm
 
+def load_preprocessed_text(name=''):
+    lemm = None 
+    
+    with open('./data/tokens_{0}.pkl'.format(name), 'rb') as file:
+        start_time = time()
+        print('Open cleaned tokens file . . .')
+        lemm = pickle.load(file)
+        print('. . . tokens loaded in {0}'.format((time() - start_time)/60))
+    
+    return lemm
 
 def to_lower(data):
     return data.map(lambda txt: txt.lower())
@@ -109,22 +110,25 @@ def to_lemmas(data):
     return toRet
 
 
-def get_word_embedding(sentences):
+def get_word_embedding(sentences, name=''):
+    model_path = './w2v_models/w2v_{0}.bin'.format(name)
+    
     model = None
 
-    if not os.path.exists('./data/model.bin'):
+    if not os.path.exists(model_path):
         start_time = time()
         print('Creating word2vec model . . .')
 
         model = Word2Vec(sentences, min_count=1)
-        model.save('./data/model.bin')
+
+        model.save(model_path)
         
         print('. . .model saved succesfully in {0} minutes'.format((time() - start_time)/60))
     else:
         print('Loading existing word2vec model. . .')
         
         start_time = time()
-        model = Word2Vec.load('./data/model.bin')
+        model = Word2Vec.load(model_path)
         
         print('. . . model loaded successfully in {0} minutes'.format((time() - start_time)/60))
     
