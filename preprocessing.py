@@ -1,22 +1,30 @@
 import os
 import re
+import pickle
+
+
+from time import time
+from gensim.models import Word2Vec
+
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-import pickle
-from gensim.models import Word2Vec
+
+
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
 
-def text_pipeline(sentences):
-    if not os.path.exists('./data/lemmas.pkl'):
+def text_pipeline(sentences = None):
+
+    if sentences or not os.path.exists('./data/lemmas.pkl'):
         print('Cleaning the sentences...')
         # casing the characters
         mod_sentences = to_lower(sentences)
         print('Decontracted the contracted forms...')
         # handling contracted forms
         mod_sentences = mod_sentences.apply(decontract)
+
         print('Getting tokens...')
         tokens = get_tokens(mod_sentences)
         print('Removing stopwords and non alpha words...')
@@ -31,7 +39,10 @@ def text_pipeline(sentences):
 
     else:
         with open('./data/lemmas.pkl', 'rb') as file:
+            start_time = time()
+            print('Open cleaned tokens file . . .')
             lemm = pickle.load(file)
+            print('. . . tokens loaded in {0}'.format((time() - start_time)/60))
 
     return lemm
 
@@ -99,16 +110,22 @@ def to_lemmas(data):
 
 
 def get_word_embedding(sentences):
-    
     model = None
 
     if not os.path.exists('./data/model.bin'):
-        print('Creating weord2vec model...')
+        start_time = time()
+        print('Creating word2vec model . . .')
 
         model = Word2Vec(sentences, min_count=1)
         model.save('./data/model.bin')
-        print('...model saved succesfully!')
+        
+        print('. . .model saved succesfully in {0} minutes'.format((time() - start_time)/60))
     else:
+        print('Loading existing word2vec model. . .')
+        
+        start_time = time()
         model = Word2Vec.load('./data/model.bin')
+        
+        print('. . . model loaded successfully in {0} minutes'.format((time() - start_time)/60))
     
     return model

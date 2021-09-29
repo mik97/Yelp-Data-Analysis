@@ -17,6 +17,6 @@ plots_path = "./plots"
 # balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv', './balanced_dataset/dataset_stars.csv']
 balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv']
 
-
 # first execute
 first_exec = True
+do_preprocessing = False
