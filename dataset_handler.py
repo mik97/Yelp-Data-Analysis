@@ -7,8 +7,6 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-from sklearn.utils import shuffle
-
 def initDataset(type):
     '''
         Load the entire dataset and pickle it or read it directly from an existing file containing a pickled dataframe.
@@ -79,9 +77,6 @@ def get_balanced_subset(data, col):
 
     
 
-
-
-
 def analyze(df, type):
     #  create the folder where to save the plots
     # checkPlotFolder()
@@ -131,12 +126,12 @@ def saveFigure(filepath):
         print('%s not found' % filepath)
     plt.clf()
 
-def get_balanced_subset(data, col):
-    if(col == 'sentiment'):
-        negSamples = data[data[col] == 0.0].sample(n=500000)
-        posSamples = data[data[col] == 1.0].sample(n=500000)
+# def get_balanced_subset(data, col):
+#     if(col == 'sentiment'):
+#         negSamples = data[data[col] == 0.0].sample(n=500000)
+#         posSamples = data[data[col] == 1.0].sample(n=500000)
 
-        final_df = shuffle(
-            pd.concat([negSamples, posSamples])).reset_index(drop=True)
-        print(final_df)
-        return final_df
+#         final_df = shuffle(
+#             pd.concat([negSamples, posSamples])).reset_index(drop=True)
+#         print(final_df)
+#         return final_df
