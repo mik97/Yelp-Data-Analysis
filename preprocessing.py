@@ -37,16 +37,18 @@ def preprocess_text(sentences, name=''):
 
     return lemm
 
+
 def load_preprocessed_text(name=''):
-    lemm = None 
-    
+    lemm = None
+
     with open('./data/tokens_{0}.pkl'.format(name), 'rb') as file:
         start_time = time()
         print('Open cleaned tokens file . . .')
         lemm = pickle.load(file)
         print('. . . tokens loaded in {0}'.format((time() - start_time)/60))
-    
+
     return lemm
+
 
 def to_lower(data):
     return data.map(lambda txt: txt.lower())
@@ -87,6 +89,8 @@ def remove_stopwords_and_noalpha(data):
     return toRet
 
 # def remove_stopwords_and_noalpha_and_lemmatize(data):
+
+
 def process_tokens(data):
     stop_words = stopwords.words('english')
     wml = WordNetLemmatizer()
@@ -112,7 +116,7 @@ def to_lemmas(data):
 
 def get_word_embedding(sentences, name=''):
     model_path = './w2v_models/w2v_{0}.bin'.format(name)
-    
+
     model = None
 
     if not os.path.exists(model_path):
@@ -122,14 +126,16 @@ def get_word_embedding(sentences, name=''):
         model = Word2Vec(sentences, min_count=1)
 
         model.save(model_path)
-        
-        print('. . .model saved succesfully in {0} minutes'.format((time() - start_time)/60))
+
+        print('. . .model saved succesfully in {0} minutes'.format(
+            (time() - start_time)/60))
     else:
         print('Loading existing word2vec model. . .')
-        
+
         start_time = time()
         model = Word2Vec.load(model_path)
-        
-        print('. . . model loaded successfully in {0} minutes'.format((time() - start_time)/60))
-    
+
+        print('. . . model loaded successfully in {0} minutes'.format(
+            (time() - start_time)/60))
+
     return model

@@ -17,8 +17,8 @@ def initDataset(type):
     start_time = time.time()
 
     df_toRet = []
-    pkl_filepath = const.pkl_path + type +'.pkl'
-    
+    pkl_filepath = const.pkl_path + type + '.pkl'
+
     if os.path.exists(pkl_filepath):
         print("Unpickling existing file . . .")
 
@@ -48,18 +48,22 @@ def initDataset(type):
 
         print("File loaded {0} minutes".format((time.time() - start_time)/60))
 
+        checkDataFolder()
+
         # pickle the file if not already picklef
         pd.to_pickle(df_toRet, pkl_filepath)
-    
-    print("Loaded file with {0} rows and {1} columns".format(df_toRet.shape[0], df_toRet.shape[1]))
+
+    print("Loaded file with {0} rows and {1} columns".format(
+        df_toRet.shape[0], df_toRet.shape[1]))
 
     return df_toRet
+
 
 def get_balanced_subset(data, col):
     if (col == "sentiment"):
         final_df = None
 
-        csv_filepath = const.balanced_csv_path + col +'.csv'
+        csv_filepath = const.balanced_csv_path + col + '.csv'
 
         if (os.path.exists(csv_filepath)):
             print("Read existing csv ", csv_filepath)
@@ -68,12 +72,14 @@ def get_balanced_subset(data, col):
             print("Creating new csv", csv_filepath)
             negSamples = data.loc[data['sentiment'] == 0].sample(500_000)
             posSamples = data.loc[data['sentiment'] == 1].sample(500_000)
-            
-            final_df = shuffle(pd.concat([negSamples,posSamples])).reset_index()
+
+            final_df = shuffle(
+                pd.concat([negSamples, posSamples])).reset_index()
 
             final_df.to_csv(csv_filepath)
 
         return final_df
+
 
 def analyze(df, type):
     #  create the folder where to save the plots
@@ -98,8 +104,9 @@ def analyze(df, type):
         plt.title("Positive and negative sentiment count")
 
         saveFigure(savePath + "posNegSentimentCount.jpg")
-       
-def checkPlotFolder(type = None):
+
+
+def checkPlotFolder(type=None):
     directory_to_create = const.plots_path
 
     if (type):
@@ -115,6 +122,26 @@ def checkPlotFolder(type = None):
                   directory_to_create)
 
 
+def checkDataFolder():
+    if not os.path.exists('./data'):
+        try:
+            os.makedirs('./data')
+        except:
+            print('Creation of th directory ./data failed')
+        else:
+            print('Successfully created of the directory ./data')
+
+
+def checkDatasetBalancedFolder():
+    if not os.path.exists('./balanced_dataset'):
+        try:
+            os.makedirs('./balanced_dataset')
+        except:
+            print('Creation of th directory ./balanced_dataset failed')
+        else:
+            print('Successfully created of the directory ./balanced_dataset')
+
+
 def saveFigure(filepath):
     try:
         if os.path.exists(filepath):
@@ -123,4 +150,3 @@ def saveFigure(filepath):
     except FileNotFoundError:
         print('%s not found' % filepath)
     plt.clf()
-

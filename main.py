@@ -4,6 +4,7 @@ import preprocessing
 
 import dataset_handler as dh
 
+
 def main():
     review_dataset_tasks()
 
@@ -14,6 +15,7 @@ def review_dataset_tasks():
     '''
     review_df = None
 
+    dh.checkDatasetBalancedFolder()
     # check existence of balanced dataset versions, if not, create them
     balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv']
 
@@ -24,6 +26,7 @@ def review_dataset_tasks():
     task1_pipeline(review_df)
     # task2_pipeline(review_df)
 
+
 def task1_pipeline(data):
     cleaned_sentences = None
 
@@ -32,12 +35,14 @@ def task1_pipeline(data):
         balanced_df = dh.get_balanced_subset(data, 'sentiment')
         # pipeline
         # pass only the series with text
-        cleaned_sentences = preprocessing.preprocess_text(balanced_df['text'], name='task1')
+        cleaned_sentences = preprocessing.preprocess_text(
+            balanced_df['text'], name='task1')
     else:
         cleaned_sentences = preprocessing.load_preprocessed_text(name='task1')
 
     # get word embedding of reviews
-    w2vec_model = preprocessing.get_word_embedding(cleaned_sentences, name='task1')
+    w2vec_model = preprocessing.get_word_embedding(
+        cleaned_sentences, name='task1')
 
     print(w2vec_model.wv['burrito'])
 
