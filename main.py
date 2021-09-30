@@ -40,6 +40,8 @@ def task1_pipeline(data):
     else:
         cleaned_sentences = preprocessing.load_preprocessed_text(name='task1')
 
+    dh.checkW2vModelsFolder()
+
     # get word embedding of reviews
     w2vec_model = preprocessing.get_word_embedding(
         cleaned_sentences, name='task1')

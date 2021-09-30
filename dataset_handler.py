@@ -141,6 +141,15 @@ def checkDatasetBalancedFolder():
         else:
             print('Successfully created of the directory ./balanced_dataset')
 
+def checkW2vModelsFolder():
+    if not os.path.exists('./w2v_models'):
+        try:
+            os.makedirs('./w2v_models')
+        except:
+            print('Creation of th directory ./w2v_models failed')
+        else:
+            print('Successfully created of the directory ./w2v_models')
+
 
 def saveFigure(filepath):
     try:
