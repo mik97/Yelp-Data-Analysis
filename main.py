@@ -1,8 +1,8 @@
 import os
-import const
+import utils
 import preprocessing
 
-import dataset_handler as dh
+import data_handler as data_handler
 
 
 def main():
@@ -13,38 +13,30 @@ def review_dataset_tasks():
     '''
         Task 1, 2 and 3 that uses the review dataset.
     '''
-    review_df = None
 
-    dh.checkDatasetBalancedFolder()
-    # check existence of balanced dataset versions, if not, create them
-    balanced_data_files = ['./balanced_dataset/dataset_sentiment.csv']
-
-    if not all([os.path.exists(file) for file in balanced_data_files]):
-        review_df = dh.initDataset('review')
-        dh.analyze(review_df, 'review')
-
-    task1_pipeline(review_df)
-    # task2_pipeline(review_df)
+    task1_pipeline()
 
 
-def task1_pipeline(data):
+def task1_pipeline():
     cleaned_sentences = None
 
-    if not os.path.exists("./data/tokens_task1.pkl"):
-        # get a dataset sentiment balanced, if it already exists load from csv
-        balanced_df = dh.get_balanced_subset(data, 'sentiment')
-        # pipeline
-        # pass only the series with text
-        cleaned_sentences = preprocessing.preprocess_text(
-            balanced_df['text'], name='task1')
+    tokens_path = utils.get_tokens_file('task1')
+    w2v_path = utils.get_w2v_file('task1')
+
+    # 1. Get preprocessed text
+    if os.path.exists(tokens_path):
+        cleaned_sentences = preprocessing.load_preprocessed_text(tokens_path)
     else:
-        cleaned_sentences = preprocessing.load_preprocessed_text(name='task1')
+        # get review dataset sentiment balanced, if it already exists load from csv
+        balanced_df = data_handler.get_balanced_subset(
+            'review', 'sentiment', 500_000)
 
-    dh.checkW2vModelsFolder()
+        cleaned_sentences = preprocessing.preprocess_text(
+            balanced_df['text'], tokens_path)
 
-    # get word embedding of reviews
+    # 2. Get reviews word embedding
     w2vec_model = preprocessing.get_word_embedding(
-        cleaned_sentences, name='task1')
+        cleaned_sentences, w2v_path)
 
     print(w2vec_model.wv['burrito'])
 

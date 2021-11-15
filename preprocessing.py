@@ -1,9 +1,9 @@
 import os
 import re
 import pickle
+import time
+import utils
 
-
-from time import time
 from gensim.models import Word2Vec
 
 from nltk.tokenize import word_tokenize
@@ -15,39 +15,36 @@ from nltk.stem import WordNetLemmatizer
 # nltk.download('wordnet')
 
 
-def preprocess_text(sentences, name=''):
-    print('Cleaning the sentences...')
-    # casing the characters
+def preprocess_text(sentences, file_path):
+    print('Processing phase: cleaning the sentences...')
+
     mod_sentences = to_lower(sentences)
-    print('Decontracted the contracted forms...')
-    # handling contracted forms
+
+    print('\tDecontracted the contracted forms...')
     mod_sentences = mod_sentences.apply(decontract)
 
-    print('Getting tokens...')
+    print('\tGetting tokens...')
     tokens = get_tokens(mod_sentences)
-    print('Removing stopwords and non alpha words...')
-    # remove stopwords and non alpha num characters
-    tokens = remove_stopwords_and_noalpha(tokens)
-    # lemmatize
-    print('Lemmatizing...')
-    lemm = to_lemmas(tokens)
 
-    with open('./data/tokens_{0}.pkl'.format(name), 'wb') as file:
-        pickle.dump(lemm, file)
+    print('\tRemoving stopwords and non alpha words, lemmatizing remaining wordss...')
+    final_tokens = process_tokens(tokens)
 
-    return lemm
+    # pickled lemmas and
+    with open(file_path, 'wb') as file:
+        pickle.dump(final_tokens, file)
+
+    return final_tokens
 
 
-def load_preprocessed_text(name=''):
-    lemm = None
+def load_preprocessed_text(file_path):
+    with open(file_path, 'rb') as file:
+        start_time = time.time()
 
-    with open('./data/tokens_{0}.pkl'.format(name), 'rb') as file:
-        start_time = time()
-        print('Open cleaned tokens file . . .')
-        lemm = pickle.load(file)
-        print('. . . tokens loaded in {0}'.format((time() - start_time)/60))
+        print(f'Load cleaned tokens file {file_path}...')
+        tokens = pickle.load(file)
+        print(f'...tokens loaded in {utils.get_minutes(start_time)}')
 
-    return lemm
+    return tokens
 
 
 def to_lower(data):
@@ -78,20 +75,19 @@ def toLowerCase(array):
     return [token.lower() for token in array]
 
 
-def remove_stopwords_and_noalpha(data):
-    stop_words = stopwords.words('english')
+# def remove_stopwords_and_noalpha(data):
+#     stop_words = stopwords.words('english')
 
-    toRet = []
-    for array in data:
-        toRet.append(
-            [word for word in array if word not in stop_words and word.isalpha()])
+#     toRet = []
+#     for array in data:
+#         toRet.append(
+#             [word for word in array if word not in stop_words and word.isalpha()])
 
-    return toRet
-
-# def remove_stopwords_and_noalpha_and_lemmatize(data):
+#     return toRet
 
 
 def process_tokens(data):
+    ''' remove stop-words and non alpha, also lemmatize words'''
     stop_words = stopwords.words('english')
     wml = WordNetLemmatizer()
 
@@ -103,39 +99,36 @@ def process_tokens(data):
     return toRet
 
 
-def to_lemmas(data):
-    toRet = []
+# def to_lemmas(data):
+#     toRet = []
 
-    wml = WordNetLemmatizer()
+#     wml = WordNetLemmatizer()
 
-    for array in data:
-        toRet.append([wml.lemmatize(word) for word in array])
+#     for array in data:
+#         toRet.append([wml.lemmatize(word) for word in array])
 
-    return toRet
+#     return toRet
 
 
-def get_word_embedding(sentences, name=''):
-    model_path = './w2v_models/w2v_{0}.bin'.format(name)
-
+def get_word_embedding(sentences, model_path):
     model = None
 
+    start_time = time.time()
+
     if not os.path.exists(model_path):
-        start_time = time()
-        print('Creating word2vec model . . .')
 
+        print(f'Creating word2vec model at {model_path}...')
         model = Word2Vec(sentences, min_count=1)
-
         model.save(model_path)
 
-        print('. . .model saved succesfully in {0} minutes'.format(
-            (time() - start_time)/60))
+        print(
+            f'...model saved succesfully in {utils.get_minutes(start_time)} minutes')
     else:
-        print('Loading existing word2vec model. . .')
+        print(f'Loading existing word2vec model at {model_path}...')
 
-        start_time = time()
         model = Word2Vec.load(model_path)
 
-        print('. . . model loaded successfully in {0} minutes'.format(
-            (time() - start_time)/60))
+        print(
+            f'...model loaded successfully in {utils.get_minutes(start_time)} minutes')
 
     return model
