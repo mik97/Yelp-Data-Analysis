@@ -1,9 +1,21 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-data/
-plots/
-balanced_dataset/
-w2v_models/
+data/*.*
+data/*/*.*
+
+plots/*.*
+plots/*/*.*
+
+pickled_data/*.*
+pickled_data/*/*.*
+
+w2v_models/*.*
+w2v_models/*/*.*
+
+balanced_dataset/*.*
+balanced_dataset/*/*.*
+
+!*/.gitkeep
 
 test.csv
