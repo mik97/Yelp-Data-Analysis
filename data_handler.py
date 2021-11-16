@@ -111,7 +111,7 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
             posSamples = data.loc[data['sentiment'] == 1].sample(n_samples)
 
             to_ret = shuffle(
-                pd.concat([negSamples, posSamples])).reset_index()
+                pd.concat([negSamples, posSamples]), random_state=const.seed).reset_index()
 
     return to_ret
 
