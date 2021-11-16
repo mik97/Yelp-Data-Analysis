@@ -33,7 +33,7 @@ class Dataset():
     def split(self, x_columns, target, val_size=0.01, test_size=0.01, n_samples=500_000):
         ''' Load splitted versions or split here'''
 
-        if all([os.path.exists(list(self.subsets_files.values()))]):
+        if all([os.path.exists(path) for path in list(self.subsets_files.values())]):
             # load existing files
             train = data_handler.load_subset(self.subsets_files['train'])
             self.train_data = (train[x_columns], train[target])
@@ -55,18 +55,31 @@ class Dataset():
         x_train, x_test, y_train, y_test = train_test_split(
             x_data, y_data, test_size=test_size, random_state=const.seed)
 
+        print(x_train, y_train)
+
         # adjust % validation set
         # tot_samples : 100 = x : val %
-        n_val_samples = (x_data.shape[0] * val_size) / 100
+        n_val_samples = x_data.shape[0] * val_size
         # train_samples : 100 = val samples : x
-        adjusted_val_size = (100 * n_val_samples) / x_train.shape[0]
+        adjusted_val_size = n_val_samples / x_train.shape[0]
 
         x_train, x_val, y_train, y_val = train_test_split(
-            x_data, y_data, test_size=adjusted_val_size, random_state=const.seed)
+            x_train, y_train, test_size=adjusted_val_size, random_state=const.seed)
 
         print(
-            f'Dataset splitted into train({x_train.shape[0]} samples), val({x_val.shape[0]} samples), test({x_test.shape[0]} samples)')
+            f'Dataset splitted into train ({x_train.shape[0]} samples), val ({x_val.shape[0]} samples), test ({x_test.shape[0]} samples)')
 
         self.train_data = (x_train, y_train)
         self.val_data = (x_val, y_val)
         self.test_data = (x_test, y_test)
+
+        # save csv
+
+        x_train.join(y_train).to_csv(self.subsets_files['train'])
+        print(f"{self.subsets_files['train']} created")
+
+        x_val.join(y_val).to_csv(self.subsets_files['val'])
+        print(f"{self.subsets_files['val']} created")
+
+        x_test.join(y_test).to_csv(self.subsets_files['test'])
+        print(f"{self.subsets_files['test']} created")
