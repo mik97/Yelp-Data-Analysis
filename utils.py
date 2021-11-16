@@ -7,7 +7,11 @@ def pickled_file_name(name):
 
 
 def balanced_data_file_name(dataset_type, balanced_name):
-    return f'{const.balanced_csv_path}{dataset_type}_{balanced_name}.csv'
+    return f'{const.data_csv_path}balanced_{dataset_type}_{balanced_name}.csv'
+
+
+def data_file_name(dataset_name, balanced_name, type):
+    return f'{const.data_csv_path}balanced_{dataset_name}_{balanced_name}_{type}.csv'
 
 
 def plot_file_name(name):
