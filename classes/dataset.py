@@ -5,8 +5,6 @@ import data_handler
 import utils
 import os
 
-import pandas
-
 
 class Dataset():
     # based on data analytics slides, a good splitting for huge dataset (>= 1_000_000)

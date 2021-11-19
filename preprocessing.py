@@ -10,6 +10,10 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+# TODO use keras tokenizer (maybe)
+
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
@@ -75,17 +79,6 @@ def toLowerCase(array):
     return [token.lower() for token in array]
 
 
-# def remove_stopwords_and_noalpha(data):
-#     stop_words = stopwords.words('english')
-
-#     toRet = []
-#     for array in data:
-#         toRet.append(
-#             [word for word in array if word not in stop_words and word.isalpha()])
-
-#     return toRet
-
-
 def process_tokens(data):
     ''' remove stop-words and non alpha, also lemmatize words'''
     stop_words = stopwords.words('english')
@@ -99,17 +92,7 @@ def process_tokens(data):
     return toRet
 
 
-# def to_lemmas(data):
-#     toRet = []
-
-#     wml = WordNetLemmatizer()
-
-#     for array in data:
-#         toRet.append([wml.lemmatize(word) for word in array])
-
-#     return toRet
-
-
+# Maybe useless
 def get_word_embedding(sentences, model_path):
     model = None
 

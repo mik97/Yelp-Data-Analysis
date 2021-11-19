@@ -117,22 +117,21 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
 
 
 def load_subset(path):
-    # read directly the csv and the save it as a pickled version
-    print(f"\tReading {path}...")
+    print(f"Reading {path}...")
     start_time = time.time()
 
     total = []
     # remember: each chunk is a regular dataframe object
     # 864 chunks w chunk == 10_000
-    for chunk_index, chunk in enumerate(pd.read_json(const.filesPath[type], lines=True, orient="records", chunksize=10_000)):
+    for chunk_index, chunk in enumerate(pd.read_csv(path, chunksize=10_000)):
         total.append(chunk)
 
-        if (chunk_index % 50 == 0):
-            print(f"\t\t{chunk_index} chunks loaded")
+        if (chunk_index+1 % 50 == 0):
+            print(f"\t{chunk_index} chunks loaded")
 
     df_dataset = pd.concat(total, ignore_index=True)
 
-    print(f"\tFile loaded in {utils.get_minutes(start_time)} minutes")
+    print(f"File loaded in {utils.get_minutes(start_time)} minutes")
 
     return df_dataset
 

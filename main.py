@@ -1,8 +1,4 @@
-import os
-import utils
-import preprocessing
-
-import data_handler as data_handler
+from classes.dataset import Dataset
 
 
 def main():
@@ -13,6 +9,7 @@ def review_dataset_tasks():
     '''
         Task 1, 2 and 3 that uses the review dataset.
     '''
+    # TODO some statistics and visualization
 
     task1_pipeline()
 
@@ -20,25 +17,17 @@ def review_dataset_tasks():
 def task1_pipeline():
     cleaned_sentences = None
 
-    tokens_path = utils.get_tokens_file('task1')
-    w2v_path = utils.get_w2v_file('task1')
+    # tokens_path = utils.get_tokens_file('task1')
+    # w2v_path = utils.get_w2v_file('task1')
 
-    # 1. Get preprocessed text
-    if os.path.exists(tokens_path):
-        cleaned_sentences = preprocessing.load_preprocessed_text(tokens_path)
-    else:
-        # get review dataset sentiment balanced, if it already exists load from csv
-        balanced_df = data_handler.get_balanced_subset(
-            'review', 'sentiment', 500_000)
+    # TODO w2v training only on training set
 
-        cleaned_sentences = preprocessing.preprocess_text(
-            balanced_df['text'], tokens_path)
+    # TODO 1. create tokens training set -> save it csv file (column: index, preprocessed text, sentiment)
+    # TODO 2. create tokens validation set -> save it csv file (column: index, preprocessed text, sentiment)
+    # TODO 3. create tokens test set -> save it csv file (column: index, preprocessed text, sentiment)
 
-    # 2. Get reviews word embedding
-    w2vec_model = preprocessing.get_word_embedding(
-        cleaned_sentences, w2v_path)
-
-    print(w2vec_model.wv['burrito'])
+    review_data = Dataset('review', 'sentiment')
+    review_data.split(['text'], 'sentiment', n_samples=500_000)
 
 
 if __name__ == "__main__":
