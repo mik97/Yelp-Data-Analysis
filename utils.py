@@ -1,3 +1,4 @@
+
 import const
 import time
 
@@ -27,4 +28,4 @@ def get_w2v_file(task_name):
 
 
 def get_minutes(start_time):
-    return (time.time() - start_time)/60
+    return round(((time.time() - start_time)/60), 2)
