@@ -3,18 +3,16 @@ import re
 import pickle
 import time
 
-from nltk import tokenize
+from nltk.util import pad_sequence
 import utils
-
 import numpy as np
 
 # from gensim.models import Word2Vec
 
 from nltk.tokenize import word_tokenize
-
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-
+from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 from tensorflow.keras.preprocessing.text import Tokenizer
 
@@ -24,7 +22,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 # nltk.download('wordnet')
 
 
-def preprocess_text(sentences, file_path):
+def preprocess_text(sentences):
     print('Processing phase: cleaning the sentences...')
     mod_sentences = to_lower(sentences)
 
@@ -36,7 +34,19 @@ def preprocess_text(sentences, file_path):
 
     print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
     lemmas = retrieve_lemmas(first_tokens)
-    return final_tokens
+
+    max_len = max(lemmas, key=len)
+
+    wordDetok = TreebankWordDetokenizer()
+    detokenized = [wordDetok.detokenize(words) for words in lemmas]
+
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(detokenized)
+    sequences = tokenizer.texts_to_sequences(detokenized)
+
+    reviews = pad_sequence(sequences,max_len)
+
+    return reviews, tokenizer
 
 
 def load_preprocessed_text(file_path):
