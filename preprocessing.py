@@ -35,16 +35,20 @@ def preprocess_text(sentences):
     print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
     lemmas = retrieve_lemmas(first_tokens)
 
-    max_len = max(lemmas, key=len)
+    return lemmas
 
+
+def do_tokenizer(lemmas):
     wordDetok = TreebankWordDetokenizer()
     detokenized = [wordDetok.detokenize(words) for words in lemmas]
 
-    tokenizer = Tokenizer()
+    tokenizer = Tokenizer(oov_token="<OOV>")
     tokenizer.fit_on_texts(detokenized)
     sequences = tokenizer.texts_to_sequences(detokenized)
 
-    reviews = pad_sequence(sequences,max_len)
+    max_len = max(lemmas, key=len)
+    print(max_len)
+    reviews = pad_sequence(sequences, max_len)
 
     return reviews, tokenizer
 
