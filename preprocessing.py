@@ -1,4 +1,3 @@
-import os
 import re
 import pickle
 import time
@@ -7,22 +6,39 @@ from nltk.util import pad_sequence
 import utils
 import numpy as np
 
-# from gensim.models import Word2Vec
-
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 from tensorflow.keras.preprocessing.text import Tokenizer
+from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 # TODO use keras tokenizer
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
+# TODO
+# train set ->  fit tokenizer, get tokens, e embedding matrix
+# val set -> get tokens using training tokenizer
+# test set -> get tokens using training tokenizer
 
-def preprocess_text(sentences):
+
+def get_tokenizer(sentences: list[list[str]]) -> tuple[Tokenizer, list[list[int]]]:
+    ''' sentences: texts to preprocess
+
+        return tokenizer, text tokenized and padded ready for the training
+    '''
+    cleaned_sentences, max_lenght = preprocess_text(sentences)
+
+    tokenizer = Tokenizer(oov_token="<OOV>")
+    tokenizer.fit_on_texts(cleaned_sentences)
+
+    return tokenizer, tokenize(cleaned_sentences, max_lenght, tokenizer)
+
+
+def preprocess_text(sentences) -> tuple[list[str], int]:
+    ''' Return list of cleaned sentences'''
     print('Processing phase: cleaning the sentences...')
     mod_sentences = to_lower(sentences)
 
@@ -30,27 +46,25 @@ def preprocess_text(sentences):
     mod_sentences = mod_sentences.apply(decontract)
 
     print('\tGetting initial tokens...')
-    first_tokens = get_tokens(mod_sentences)
+    first_tokens = get_initial_tokens(mod_sentences)
 
     print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
     lemmas = retrieve_lemmas(first_tokens)
+    max_len = len(max(lemmas, key=len))
 
-    return lemmas
+    word_detokenizer = TreebankWordDetokenizer()
+
+    detokenized_texts = [
+        word_detokenizer.detokenize(sentence) for sentence in lemmas]
+
+    return detokenized_texts, max_len
 
 
-def do_tokenizer(lemmas):
-    wordDetok = TreebankWordDetokenizer()
-    detokenized = [wordDetok.detokenize(words) for words in lemmas]
-
-    tokenizer = Tokenizer(oov_token="<OOV>")
-    tokenizer.fit_on_texts(detokenized)
-    sequences = tokenizer.texts_to_sequences(detokenized)
-
-    max_len = max(lemmas, key=len)
-    print(max_len)
-    reviews = pad_sequence(sequences, max_len)
-
-    return reviews, tokenizer
+def tokenize(sequences, max_len, tokenizer):
+    ''' Return padded sequences of tokens'''
+    tokens = tokenizer.texts_to_sequences(sequences)
+    padded_tokens = pad_sequence(tokens, max_len)
+    return padded_tokens
 
 
 def load_preprocessed_text(file_path):
@@ -84,7 +98,7 @@ def decontract(sentence):
     return sentence
 
 
-def get_tokens(data):
+def get_initial_tokens(data):
     return data.apply(word_tokenize)
 
 
@@ -135,27 +149,3 @@ def get_embedding_matrix(tokenizer, vocab_size, embedding_indexes):
     print(f'Computed embedding matrix: {embedding_matrix}')
 
     return embedding_matrix
-
-    # # Maybe useless
-    # def get_word_embedding(sentences, model_path):
-    #     model = None
-
-    #     start_time = time.time()
-
-    #     if not os.path.exists(model_path):
-
-    #         print(f'Creating word2vec model at {model_path}...')
-    #         model = Word2Vec(sentences, min_count=1)
-    #         model.save(model_path)
-
-    #         print(
-    #             f'...model saved succesfully in {utils.get_minutes(start_time)} minutes')
-    #     else:
-    #         print(f'Loading existing word2vec model at {model_path}...')
-
-    #         model = Word2Vec.load(model_path)
-
-    #         print(
-    #             f'...model loaded successfully in {utils.get_minutes(start_time)} minutes')
-
-    #     return model

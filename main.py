@@ -1,5 +1,5 @@
 from classes.dataset import Dataset
-from preprocessing import do_tokenizer, preprocess_text
+from preprocessing import tokenize, preprocess_text
 
 
 def main():
@@ -18,22 +18,17 @@ def review_dataset_tasks():
 def task1_pipeline():
     cleaned_sentences = None
 
-    # tokens_path = utils.get_tokens_file('task1')
-    # w2v_path = utils.get_w2v_file('task1')
-
-    # TODO ? w2v training only on training set
-
-    # TODO 1. create tokens training set -> save it csv file (column: index, preprocessed text, sentiment)
-    # TODO 2. create tokens validation set -> save it csv file (column: index, preprocessed text, sentiment)
-    # TODO 3. create tokens test set -> save it csv file (column: index, preprocessed text, sentiment)
+    # COMPLETE 1. create tokens training set -> save it csv file (column: index, preprocessed text, sentiment)
+    # COMPLETE 2. create tokens validation set -> save it csv file (column: index, preprocessed text, sentiment)
+    # COMPLETE 3. create tokens test set -> save it csv file (column: index, preprocessed text, sentiment)
 
     review_data = Dataset('review', 'sentiment')
     review_data.split(['text'], 'sentiment', n_samples=500_000)
 
-    textPreprocessed = preprocess_text(review_data.train_data[0])
-    print("Text preprocessed: ", textPreprocessed)
+    preprocessed_text = preprocess_text(review_data.train_data[0])
+    print("Preprocessed text: ", preprocessed_text)
 
-    tokens = do_tokenizer(textPreprocessed)
+    tokens = tokenize(preprocessed_text)
     print("Tokens: ", tokens)
 
 
