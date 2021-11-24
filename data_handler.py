@@ -33,7 +33,7 @@ def load_dataset(type):
         total = []
         # remember: each chunk is a regular dataframe object
         # 864 chunks w chunk == 10_000
-        for chunk_index, chunk in enumerate(pd.read_json(const.filesPath[type], lines=True, orient="records", chunksize=10_000)):
+        for chunk_index, chunk in enumerate(pd.read_json(utils.dataset_file_name(type), lines=True, orient="records", chunksize=10_000)):
             total.append(_handle_chunk(chunk, type))
 
             if (chunk_index % 50 == 0):
