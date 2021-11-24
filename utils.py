@@ -15,6 +15,10 @@ def data_file_name(dataset_name, balanced_name, type):
     return f'{const.data_csv_path}balanced_{dataset_name}_{balanced_name}_{type}.csv'
 
 
+def dataset_file_name(name):
+    return f'{const.dataset_path}{name}.json'
+
+
 def plot_file_name(name):
     return f'{const.plots_path}{name}.png'
 
