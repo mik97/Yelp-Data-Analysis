@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-
 glove/*.*
 glove/*/*.*
 
@@ -22,4 +21,4 @@ balanced_dataset/*/*.*
 
 !*/.gitkeep
 
-test.csv
+test.*
