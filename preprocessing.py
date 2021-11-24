@@ -1,30 +1,24 @@
-import os
 import re
 import pickle
 import time
 
-from nltk import tokenize
 import utils
-
 import numpy as np
 
 # from gensim.models import Word2Vec
-
 from nltk.tokenize import word_tokenize
-
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-# TODO use keras tokenizer
+# ? use keras tokenizer
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
 
-def preprocess_text(sentences, file_path):
+def preprocess_text(sentences):
     print('Processing phase: cleaning the sentences...')
     mod_sentences = to_lower(sentences)
 
@@ -36,7 +30,7 @@ def preprocess_text(sentences, file_path):
 
     print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
     lemmas = retrieve_lemmas(first_tokens)
-    return final_tokens
+    return lemmas
 
 
 def load_preprocessed_text(file_path):
