@@ -1,4 +1,5 @@
 from classes.dataset import Dataset
+from preprocessing import do_tokenizer, preprocess_text
 
 
 def main():
@@ -28,6 +29,12 @@ def task1_pipeline():
 
     review_data = Dataset('review', 'sentiment')
     review_data.split(['text'], 'sentiment', n_samples=500_000)
+
+    textPreprocessed = preprocess_text(review_data.train_data[0])
+    print("Text preprocessed: ", textPreprocessed)
+
+    tokens = do_tokenizer(textPreprocessed)
+    print("Tokens: ", tokens)
 
 
 if __name__ == "__main__":
