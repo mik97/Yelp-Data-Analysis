@@ -2,18 +2,23 @@ import os
 import re
 import pickle
 import time
+
+from nltk import tokenize
 import utils
 
-from gensim.models import Word2Vec
+import numpy as np
+
+# from gensim.models import Word2Vec
 
 from nltk.tokenize import word_tokenize
+
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-# TODO use keras tokenizer (maybe)
-
+# TODO use keras tokenizer
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
@@ -21,22 +26,16 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 def preprocess_text(sentences, file_path):
     print('Processing phase: cleaning the sentences...')
-
     mod_sentences = to_lower(sentences)
 
     print('\tDecontracted the contracted forms...')
     mod_sentences = mod_sentences.apply(decontract)
 
-    print('\tGetting tokens...')
-    tokens = get_tokens(mod_sentences)
+    print('\tGetting initial tokens...')
+    first_tokens = get_tokens(mod_sentences)
 
-    print('\tRemoving stopwords and non alpha words, lemmatizing remaining wordss...')
-    final_tokens = process_tokens(tokens)
-
-    # pickled lemmas and
-    with open(file_path, 'wb') as file:
-        pickle.dump(final_tokens, file)
-
+    print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
+    lemmas = retrieve_lemmas(first_tokens)
     return final_tokens
 
 
@@ -79,7 +78,7 @@ def toLowerCase(array):
     return [token.lower() for token in array]
 
 
-def process_tokens(data):
+def retrieve_lemmas(data):
     ''' remove stop-words and non alpha, also lemmatize words'''
     stop_words = stopwords.words('english')
     wml = WordNetLemmatizer()
@@ -91,27 +90,58 @@ def process_tokens(data):
 
     return toRet
 
+# extract word embedding
 
-# Maybe useless
-def get_word_embedding(sentences, model_path):
-    model = None
 
-    start_time = time.time()
+def extract_word_embedding(path):
+    # path = 'glove.6B/glove.6B.100d.txt'
+    embedding_indexes = dict()
+    with open(path) as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            vector = np.asarray(values[1:], dtype='float32')
+            embedding_indexes[word] = vector
 
-    if not os.path.exists(model_path):
+    return embedding_indexes
 
-        print(f'Creating word2vec model at {model_path}...')
-        model = Word2Vec(sentences, min_count=1)
-        model.save(model_path)
 
-        print(
-            f'...model saved succesfully in {utils.get_minutes(start_time)} minutes')
-    else:
-        print(f'Loading existing word2vec model at {model_path}...')
+def get_embedding_matrix(tokenizer, vocab_size, embedding_indexes):
+    ''' Create embedding matrix'''
+    embedding_matrix = np.zeros((vocab_size, 100))
+    print("Creating embedding matrix...")
+    for word, index in tokenizer.word_index.items():
+        if index > vocab_size - 1:
+            break
+        else:
+            embedding_vector = embedding_indexes.get(word)
+            if embedding_vector is not None:
+                embedding_matrix[index] = embedding_vector
 
-        model = Word2Vec.load(model_path)
+    print(f'Computed embedding matrix: {embedding_matrix}')
 
-        print(
-            f'...model loaded successfully in {utils.get_minutes(start_time)} minutes')
+    return embedding_matrix
 
-    return model
+    # # Maybe useless
+    # def get_word_embedding(sentences, model_path):
+    #     model = None
+
+    #     start_time = time.time()
+
+    #     if not os.path.exists(model_path):
+
+    #         print(f'Creating word2vec model at {model_path}...')
+    #         model = Word2Vec(sentences, min_count=1)
+    #         model.save(model_path)
+
+    #         print(
+    #             f'...model saved succesfully in {utils.get_minutes(start_time)} minutes')
+    #     else:
+    #         print(f'Loading existing word2vec model at {model_path}...')
+
+    #         model = Word2Vec.load(model_path)
+
+    #         print(
+    #             f'...model loaded successfully in {utils.get_minutes(start_time)} minutes')
+
+    #     return model

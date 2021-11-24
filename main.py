@@ -20,7 +20,7 @@ def task1_pipeline():
     # tokens_path = utils.get_tokens_file('task1')
     # w2v_path = utils.get_w2v_file('task1')
 
-    # TODO w2v training only on training set
+    # TODO ? w2v training only on training set
 
     # TODO 1. create tokens training set -> save it csv file (column: index, preprocessed text, sentiment)
     # TODO 2. create tokens validation set -> save it csv file (column: index, preprocessed text, sentiment)
