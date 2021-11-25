@@ -1,3 +1,4 @@
+import os
 import re
 import pickle
 import time
@@ -37,7 +38,7 @@ def get_tokenizer(sentences: list[str]) -> Tokenizer:
     return tokenizer
 
 
-def preprocess_text(sentences: list[str]) -> list[str]:
+def preprocess_text(sentences: list[str], path=None) -> list[str]:
     '''Do preprocessing on input sentences.
 
     Return (list of cleaned sentences, max sentence lenght)
@@ -55,9 +56,6 @@ def preprocess_text(sentences: list[str]) -> list[str]:
 
     cleaned_tokens = list(map(clean_sentence, mod_sentences))
 
-    with open('first_cleaned_tokens_training.pkl', 'wb') as f:
-        pickle.dump(cleaned_tokens, f)
-
     # max sentence len (useful for padding)
 
     print('\tDetokenizing the sentences...')
@@ -65,6 +63,9 @@ def preprocess_text(sentences: list[str]) -> list[str]:
 
     detokenized_texts = [
         word_detokenizer.detokenize(sentence) for sentence in cleaned_tokens]
+
+    if path != None:
+        utils.save_pickled(path, detokenized_texts)
 
     return detokenized_texts
 
@@ -79,28 +80,17 @@ def clean_sentence(sentence):
             f"\t\t{tokenize_counter} sentences processed ({round(tokenize_counter*100/n_sentences, 2)}%)")
 
     return [utility['wml'].lemmatize(token) for token in word_tokenize(sentence) if token.isalpha() and token not in utility["stop_words_dict"]]
-    # list(map(process_token, word_tokenize(sentence)))
 
 
-# def process_token(token):
-#     if utility["stop_words_dict"].get(token):
-#         return utility['wml'].lemmatize(token)
-
-
-def tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None) -> np.ndarray:
+def tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None, path=None) -> np.ndarray:
     ''' Return padded sequences of tokens'''
     tokens = tokenizer.texts_to_sequences(sequences)
-    return pad_sequences(tokens, maxlen=max_len)
+    padded_tokens = pad_sequences(tokens, maxlen=max_len)
 
-# def load_preprocessed_text(file_path):
-#     with open(file_path, 'rb') as file:
-#         start_time = time.time()
+    if path != None:
+        utils.save_pickled(path, padded_tokens)
 
-#         print(f'Load cleaned tokens file {file_path}...')
-#         tokens = pickle.load(file)
-#         print(f'...tokens loaded in {utils.get_minutes(start_time)}')
-
-#     return tokens
+    return padded_tokens
 
 
 def decontract(sentence):
