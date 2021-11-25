@@ -2,6 +2,7 @@ import os
 import re
 import pickle
 import time
+from typing import Counter
 
 import utils
 import numpy as np
@@ -18,6 +19,13 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
+utility = {
+    "wml": WordNetLemmatizer(),
+    "stop_words_dict": Counter(stopwords.words('english'))
+}
+
+tokenize_counter = 0
+
 
 def get_tokenizer(sentences: list[str]) -> Tokenizer:
     ''' 
@@ -31,10 +39,13 @@ def get_tokenizer(sentences: list[str]) -> Tokenizer:
     return tokenizer
 
 
-def preprocess_text(sentences: list[str]) -> tuple[list[str], int]:
+def preprocess_text(sentences: list[str]) -> list[str]:
     '''Do preprocessing on input sentences.
 
-    Return (list of cleaned sentences, max sentence lenght)'''
+    Return (list of cleaned sentences, max sentence lenght)
+    '''
+    global n_sentences
+    n_sentences = len(sentences)
 
     print('Processing phase: cleaning the sentences...')
     mod_sentences = sentences.map(lambda txt: txt.lower())
@@ -42,21 +53,40 @@ def preprocess_text(sentences: list[str]) -> tuple[list[str], int]:
     print('\tDecontracted the contracted forms...')
     mod_sentences = mod_sentences.apply(decontract)
 
-    print('\tGetting initial tokens...')
-    first_tokens = mod_sentences.apply(word_tokenize)
+    print('\tGetting cleaned tokens...')
 
-    print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
-    lemmas = retrieve_lemmas(first_tokens)
+    cleaned_tokens = list(map(clean_sentence, mod_sentences))
+
+    with open('first_cleaned_tokens_training.pkl', 'wb') as f:
+        pickle.dump(cleaned_tokens, f)
+
     # max sentence len (useful for padding)
-    max_len = len(max(lemmas, key=len))
 
     print('\tDetokenizing the sentences...')
     word_detokenizer = TreebankWordDetokenizer()
 
     detokenized_texts = [
-        word_detokenizer.detokenize(sentence) for sentence in lemmas]
+        word_detokenizer.detokenize(sentence) for sentence in cleaned_tokens]
 
-    return detokenized_texts, max_len
+    return detokenized_texts
+
+
+def clean_sentence(sentence):
+    ''' remove stop-words and non alpha, also lemmatize words'''
+    global tokenize_counter
+    tokenize_counter += 1
+
+    if (tokenize_counter % 10_000) == 0:
+        print(
+            f"\t\t{tokenize_counter} sentences processed ({round(tokenize_counter*100/n_sentences, 2)}%)")
+
+    return [utility['wml'].lemmatize(token) for token in word_tokenize(sentence) if token.isalpha() and token not in utility["stop_words_dict"]]
+    # list(map(process_token, word_tokenize(sentence)))
+
+
+# def process_token(token):
+#     if utility["stop_words_dict"].get(token):
+#         return utility['wml'].lemmatize(token)
 
 
 def tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None) -> np.ndarray:
@@ -89,21 +119,6 @@ def decontract(sentence):
     sentence = re.sub(r"\'m", " am", sentence)
 
     return sentence
-
-
-def retrieve_lemmas(sentences_tokens: list[list[str]]) -> list[list[str]]:
-    ''' remove stop-words and non alpha, also lemmatize words'''
-    wml = WordNetLemmatizer()
-    stop_words = stopwords.words('english')
-
-    # toRet = []
-    # for array in data:
-    #     toRet.append(
-    #         [[wml.lemmatize(word) for word in array if word not in stop_words and word.isalpha()] for array in data ])
-
-    # return toRet
-
-    return [[wml.lemmatize(word) for word in array if word.isalpha() and word not in stop_words] for array in sentences_tokens]
 
 
 # extract word embedding  -----------------
