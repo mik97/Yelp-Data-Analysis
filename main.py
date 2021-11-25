@@ -1,5 +1,6 @@
 from classes.dataset import Dataset
-from preprocessing import tokenize, preprocess_text
+import preprocessing as prep_utils
+import const
 
 
 def main():
@@ -16,24 +17,34 @@ def review_dataset_tasks():
 
 
 def task1_pipeline():
-    cleaned_sentences = None
-
     # COMPLETE 1. create tokens training set -> save it csv file (column: index, preprocessed text, sentiment)
     # COMPLETE 2. create tokens validation set -> save it csv file (column: index, preprocessed text, sentiment)
     # COMPLETE 3. create tokens test set -> save it csv file (column: index, preprocessed text, sentiment)
 
+    # Get review dataset balanced with sentiment
     review_data = Dataset('review', 'sentiment')
     review_data.split(['text'], 'sentiment', n_samples=500_000)
 
-    # TODO train set ->  fit tokenizer, get tokens, e embedding matrix
+    # COMPLETE  train set: fit tokenizer and embedding matrix
+
+    # TODO train set ->  get tokens using training tokenizer
     # TODO val set -> get tokens using training tokenizer
     # TODO test set -> get tokens using training tokenizer
 
-    preprocessed_text = preprocess_text(review_data.train_data[0])
-    print("Preprocessed text: ", preprocessed_text)
+    cleaned_train, max_train_len = prep_utils.preprocess_text(
+        review_data.train_data[0]['text'])
 
-    tokens = tokenize(preprocessed_text)
-    print("Tokens: ", tokens)
+    # get tokenizer (it's the same trained on train set also for val and test set)
+    tokenizer = prep_utils.get_tokenizer(cleaned_train)
+
+    # get embedded matrix based containing vectors from a pretrained dict, vectors are related only to words found in train sentences
+
+    # glove.twitter.27B.100Dim
+    e_matrix = prep_utils.get_embedding_matrix(const.word_embedding_file, 'task1',
+                                               tokenizer, len(tokenizer.index_word)+1)
+
+    for i in range(len(e_matrix)):
+        print(e_matrix[i])
 
 
 if __name__ == "__main__":
