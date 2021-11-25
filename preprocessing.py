@@ -1,3 +1,4 @@
+import os
 import re
 import pickle
 import time
@@ -18,10 +19,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 # nltk.download('wordnet')
 
 
-def get_tokenizer(sentences: list[str]):
-    ''' sentences: preprocessed sentences 
-
-        return fited tokenizer
+def get_tokenizer(sentences: list[str]) -> Tokenizer:
+    ''' 
+        Sentences: preprocessed sentences 
     '''
     # cleaned_sentences, max_lenght = preprocess_text(sentences)
 
@@ -32,7 +32,7 @@ def get_tokenizer(sentences: list[str]):
 
 
 def preprocess_text(sentences: list[str]) -> tuple[list[str], int]:
-    '''Do preprocessing on input sentences
+    '''Do preprocessing on input sentences.
 
     Return (list of cleaned sentences, max sentence lenght)'''
 
@@ -50,7 +50,7 @@ def preprocess_text(sentences: list[str]) -> tuple[list[str], int]:
     # max sentence len (useful for padding)
     max_len = len(max(lemmas, key=len))
 
-    print('\Detokenizing the sentences...')
+    print('\tDetokenizing the sentences...')
     word_detokenizer = TreebankWordDetokenizer()
 
     detokenized_texts = [
@@ -109,10 +109,14 @@ def retrieve_lemmas(sentences_tokens: list[list[str]]) -> list[list[str]]:
 # extract word embedding  -----------------
 
 def extract_word_embedding(path):
-    # path = 'glove.6B/glove.6B.100d.txt'
     embedding_indexes = dict()
-    with open(path) as f:
-        for line in f:
+
+    print(f'Reading pretrained word embedding from {path}...')
+    with open(path, encoding='utf8') as f:
+        for index, line in enumerate(f):
+            if (index % 1000 == 0):
+                print(f'\t{index} words loaded')
+
             values = line.split()
             word = values[0]
             vector = np.asarray(values[1:], dtype='float32')
@@ -121,18 +125,48 @@ def extract_word_embedding(path):
     return embedding_indexes
 
 
-def get_embedding_matrix(tokenizer, vocab_size, embedding_indexes):
+def get_embedding_matrix(word_emb_path, task_name, tokenizer, vocab_size):
+    ''' Params:
+        w_embedding_path: path of the trained word embedding 
+        tokenizer:
+        vocab_size:
+        task_name: use it for looking for the correspondig pickled file, if it exists
+        '''
     ''' Create embedding matrix'''
-    embedding_matrix = np.zeros((vocab_size, 100))
-    print("Creating embedding matrix...")
-    for word, index in tokenizer.word_index.items():
-        if index > vocab_size - 1:
-            break
-        else:
-            embedding_vector = embedding_indexes.get(word)
-            if embedding_vector is not None:
-                embedding_matrix[index] = embedding_vector
+    # task1_embedding_matrix.npy
+    pickled_matrix_path = utils.pickled_embedding_matrix_file_name(task_name)
 
-    print(f'Computed embedding matrix: {embedding_matrix}')
+    if not os.path.exists(pickled_matrix_path):
+        embedding_indexes = extract_word_embedding(word_emb_path)
+        embedding_matrix = np.zeros((vocab_size, 100))
 
-    return embedding_matrix
+        print("Creating embedding matrix...")
+        not_found_words = 0
+
+        for word, index in tokenizer.word_index.items():
+            if index > vocab_size - 1:
+                break
+            else:
+                embedding_vector = embedding_indexes.get(word)
+                # words not found into the embedding it's represented by a vector of zeros
+                if embedding_vector is not None:
+                    embedding_matrix[index] = embedding_vector
+                else:
+                    not_found_words += 1
+
+        # tot: 100 = not_found : x
+        print(f'\t{round((not_found_words * 100 / vocab_size), 2)}% words vector not found ({not_found_words} over {vocab_size})')
+
+        # save the pickled version of the matrix
+        np.save(pickled_matrix_path, embedding_matrix)
+
+        print(
+            f'...embedding matrix created (matrix pickled at {pickled_matrix_path})')
+        return embedding_matrix
+    else:
+        print(
+            f'Loading pickled embedding matrix from {pickled_matrix_path}...')
+        embedding_matrix = np.load(pickled_matrix_path)
+        print(f'...embedding matrix loaded')
+
+        return embedding_matrix
