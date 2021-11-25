@@ -1,51 +1,106 @@
 import re
 import pickle
 import time
+from typing import Counter
 
 import utils
 import numpy as np
 
-# from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
 from tensorflow.keras.preprocessing.text import Tokenizer
-
-# ? use keras tokenizer
+from nltk.tokenize.treebank import TreebankWordDetokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
+utility = {
+    "wml": WordNetLemmatizer(),
+    "stop_words_dict": Counter(stopwords.words('english'))
+}
 
-def preprocess_text(sentences):
+tokenize_counter = 0
+
+
+def get_tokenizer(sentences: list[str]) -> Tokenizer:
+    ''' 
+        Sentences: preprocessed sentences 
+    '''
+    # cleaned_sentences, max_lenght = preprocess_text(sentences)
+
+    tokenizer = Tokenizer(oov_token="<OOV>")
+    tokenizer.fit_on_texts(sentences)
+
+    return tokenizer
+
+
+def preprocess_text(sentences: list[str]) -> list[str]:
+    '''Do preprocessing on input sentences.
+
+    Return (list of cleaned sentences, max sentence lenght)
+    '''
+    global n_sentences
+    n_sentences = len(sentences)
+
     print('Processing phase: cleaning the sentences...')
-    mod_sentences = to_lower(sentences)
+    mod_sentences = sentences.map(lambda txt: txt.lower())
 
     print('\tDecontracted the contracted forms...')
     mod_sentences = mod_sentences.apply(decontract)
 
-    print('\tGetting initial tokens...')
-    first_tokens = get_tokens(mod_sentences)
+    print('\tGetting cleaned tokens...')
 
-    print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
-    lemmas = retrieve_lemmas(first_tokens)
-    return lemmas
+    cleaned_tokens = list(map(clean_sentence, mod_sentences))
+
+    with open('first_cleaned_tokens_training.pkl', 'wb') as f:
+        pickle.dump(cleaned_tokens, f)
+
+    # max sentence len (useful for padding)
+
+    print('\tDetokenizing the sentences...')
+    word_detokenizer = TreebankWordDetokenizer()
+
+    detokenized_texts = [
+        word_detokenizer.detokenize(sentence) for sentence in cleaned_tokens]
+
+    return detokenized_texts
 
 
-def load_preprocessed_text(file_path):
-    with open(file_path, 'rb') as file:
-        start_time = time.time()
+def clean_sentence(sentence):
+    ''' remove stop-words and non alpha, also lemmatize words'''
+    global tokenize_counter
+    tokenize_counter += 1
 
-        print(f'Load cleaned tokens file {file_path}...')
-        tokens = pickle.load(file)
-        print(f'...tokens loaded in {utils.get_minutes(start_time)}')
+    if (tokenize_counter % 10_000) == 0:
+        print(
+            f"\t\t{tokenize_counter} sentences processed ({round(tokenize_counter*100/n_sentences, 2)}%)")
 
-    return tokens
+    return [utility['wml'].lemmatize(token) for token in word_tokenize(sentence) if token.isalpha() and token not in utility["stop_words_dict"]]
+    # list(map(process_token, word_tokenize(sentence)))
 
 
-def to_lower(data):
-    return data.map(lambda txt: txt.lower())
+# def process_token(token):
+#     if utility["stop_words_dict"].get(token):
+#         return utility['wml'].lemmatize(token)
+
+
+def tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None) -> np.ndarray:
+    ''' Return padded sequences of tokens'''
+    tokens = tokenizer.texts_to_sequences(sequences)
+    return pad_sequences(tokens, maxlen=max_len)
+
+# def load_preprocessed_text(file_path):
+#     with open(file_path, 'rb') as file:
+#         start_time = time.time()
+
+#         print(f'Load cleaned tokens file {file_path}...')
+#         tokens = pickle.load(file)
+#         print(f'...tokens loaded in {utils.get_minutes(start_time)}')
+
+#     return tokens
 
 
 def decontract(sentence):
@@ -64,34 +119,17 @@ def decontract(sentence):
     return sentence
 
 
-def get_tokens(data):
-    return data.apply(word_tokenize)
-
-
-def toLowerCase(array):
-    return [token.lower() for token in array]
-
-
-def retrieve_lemmas(data):
-    ''' remove stop-words and non alpha, also lemmatize words'''
-    stop_words = stopwords.words('english')
-    wml = WordNetLemmatizer()
-
-    toRet = []
-    for array in data:
-        toRet.append(
-            [wml.lemmatize(word) for word in array if word not in stop_words and word.isalpha()])
-
-    return toRet
-
-# extract word embedding
-
+# extract word embedding  -----------------
 
 def extract_word_embedding(path):
-    # path = 'glove.6B/glove.6B.100d.txt'
     embedding_indexes = dict()
-    with open(path) as f:
-        for line in f:
+
+    print(f'Reading pretrained word embedding from {path}...')
+    with open(path, encoding='utf8') as f:
+        for index, line in enumerate(f):
+            if (index % 1000 == 0):
+                print(f'\t{index} words loaded')
+
             values = line.split()
             word = values[0]
             vector = np.asarray(values[1:], dtype='float32')
@@ -100,42 +138,48 @@ def extract_word_embedding(path):
     return embedding_indexes
 
 
-def get_embedding_matrix(tokenizer, vocab_size, embedding_indexes):
+def get_embedding_matrix(word_emb_path, task_name, tokenizer, vocab_size):
+    ''' Params:
+        w_embedding_path: path of the trained word embedding 
+        tokenizer:
+        vocab_size:
+        task_name: use it for looking for the correspondig pickled file, if it exists
+        '''
     ''' Create embedding matrix'''
-    embedding_matrix = np.zeros((vocab_size, 100))
-    print("Creating embedding matrix...")
-    for word, index in tokenizer.word_index.items():
-        if index > vocab_size - 1:
-            break
-        else:
-            embedding_vector = embedding_indexes.get(word)
-            if embedding_vector is not None:
-                embedding_matrix[index] = embedding_vector
+    # task1_embedding_matrix.npy
+    pickled_matrix_path = utils.pickled_embedding_matrix_file_name(task_name)
 
-    print(f'Computed embedding matrix: {embedding_matrix}')
+    if not os.path.exists(pickled_matrix_path):
+        embedding_indexes = extract_word_embedding(word_emb_path)
+        embedding_matrix = np.zeros((vocab_size, 100))
 
-    return embedding_matrix
+        print("Creating embedding matrix...")
+        not_found_words = 0
 
-    # # Maybe useless
-    # def get_word_embedding(sentences, model_path):
-    #     model = None
+        for word, index in tokenizer.word_index.items():
+            if index > vocab_size - 1:
+                break
+            else:
+                embedding_vector = embedding_indexes.get(word)
+                # words not found into the embedding it's represented by a vector of zeros
+                if embedding_vector is not None:
+                    embedding_matrix[index] = embedding_vector
+                else:
+                    not_found_words += 1
 
-    #     start_time = time.time()
+        # tot: 100 = not_found : x
+        print(f'\t{round((not_found_words * 100 / vocab_size), 2)}% words vector not found ({not_found_words} over {vocab_size})')
 
-    #     if not os.path.exists(model_path):
+        # save the pickled version of the matrix
+        np.save(pickled_matrix_path, embedding_matrix)
 
-    #         print(f'Creating word2vec model at {model_path}...')
-    #         model = Word2Vec(sentences, min_count=1)
-    #         model.save(model_path)
+        print(
+            f'...embedding matrix created (matrix pickled at {pickled_matrix_path})')
+        return embedding_matrix
+    else:
+        print(
+            f'Loading pickled embedding matrix from {pickled_matrix_path}...')
+        embedding_matrix = np.load(pickled_matrix_path)
+        print(f'...embedding matrix loaded')
 
-    #         print(
-    #             f'...model saved succesfully in {utils.get_minutes(start_time)} minutes')
-    #     else:
-    #         print(f'Loading existing word2vec model at {model_path}...')
-
-    #         model = Word2Vec.load(model_path)
-
-    #         print(
-    #             f'...model loaded successfully in {utils.get_minutes(start_time)} minutes')
-
-    #     return model
+        return embedding_matrix

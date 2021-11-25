@@ -1,7 +1,13 @@
 # files name [user, review, business, checkin, tip]
 dataset_path = "../yelp dataset/"
 
-# path for pickled file
+# path for embedding matrix
+embedding_path = "./embedding_data/"
+embedding_matrix_path = embedding_path + "pkl_embedding_matrices/"
+
+word_embedding_file = embedding_path + \
+    "glove.twitter.27B/glove.twitter.27B.100d.txt"
+
 pkl_path = "./pickled_data/"
 plots_path = "./plots/"
 w2v_path = "./w2v_models/"

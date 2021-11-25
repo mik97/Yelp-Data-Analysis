@@ -1,24 +1,11 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
+# and all subfolders
+*data/**/*.*
+plots/**/*.*
 
-glove/
+# exclude gitkeep
+!**/.gitkeep
 
-data/*.*
-data/*/*.*
-
-plots/*.*
-plots/*/*.*
-
-pickled_data/*.*
-pickled_data/*/*.*
-
-w2v_models/*.*
-w2v_models/*/*.*
-
-balanced_dataset/*.*
-balanced_dataset/*/*.*
-
-!*/.gitkeep
-
-test.csv
+test.*
