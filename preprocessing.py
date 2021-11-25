@@ -2,9 +2,9 @@ import re
 import pickle
 import time
 
-from nltk.util import pad_sequence
 import utils
 import numpy as np
+
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
@@ -12,46 +12,45 @@ from nltk.stem import WordNetLemmatizer
 
 from tensorflow.keras.preprocessing.text import Tokenizer
 from nltk.tokenize.treebank import TreebankWordDetokenizer
-
-# TODO use keras tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # nltk.download('stopwords')
 # nltk.download('wordnet')
 
-# TODO
-# train set ->  fit tokenizer, get tokens, e embedding matrix
-# val set -> get tokens using training tokenizer
-# test set -> get tokens using training tokenizer
 
+def get_tokenizer(sentences: list[str]):
+    ''' sentences: preprocessed sentences 
 
-def get_tokenizer(sentences: list[list[str]]) -> tuple[Tokenizer, list[list[int]]]:
-    ''' sentences: texts to preprocess
-
-        return tokenizer, text tokenized and padded ready for the training
+        return fited tokenizer
     '''
-    cleaned_sentences, max_lenght = preprocess_text(sentences)
+    # cleaned_sentences, max_lenght = preprocess_text(sentences)
 
     tokenizer = Tokenizer(oov_token="<OOV>")
-    tokenizer.fit_on_texts(cleaned_sentences)
+    tokenizer.fit_on_texts(sentences)
 
-    return tokenizer, tokenize(cleaned_sentences, max_lenght, tokenizer)
+    return tokenizer
 
 
-def preprocess_text(sentences) -> tuple[list[str], int]:
-    ''' Return list of cleaned sentences'''
+def preprocess_text(sentences: list[str]) -> tuple[list[str], int]:
+    '''Do preprocessing on input sentences
+
+    Return (list of cleaned sentences, max sentence lenght)'''
+
     print('Processing phase: cleaning the sentences...')
-    mod_sentences = to_lower(sentences)
+    mod_sentences = sentences.map(lambda txt: txt.lower())
 
     print('\tDecontracted the contracted forms...')
     mod_sentences = mod_sentences.apply(decontract)
 
     print('\tGetting initial tokens...')
-    first_tokens = get_initial_tokens(mod_sentences)
+    first_tokens = mod_sentences.apply(word_tokenize)
 
     print('\tRemoving stopwords and non alpha words, lemmatizing remaining words...')
     lemmas = retrieve_lemmas(first_tokens)
+    # max sentence len (useful for padding)
     max_len = len(max(lemmas, key=len))
 
+    print('\Detokenizing the sentences...')
     word_detokenizer = TreebankWordDetokenizer()
 
     detokenized_texts = [
@@ -60,26 +59,20 @@ def preprocess_text(sentences) -> tuple[list[str], int]:
     return detokenized_texts, max_len
 
 
-def tokenize(sequences, max_len, tokenizer):
+def tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None) -> np.ndarray:
     ''' Return padded sequences of tokens'''
     tokens = tokenizer.texts_to_sequences(sequences)
-    padded_tokens = pad_sequence(tokens, max_len)
-    return padded_tokens
+    return pad_sequences(tokens, maxlen=max_len)
 
+# def load_preprocessed_text(file_path):
+#     with open(file_path, 'rb') as file:
+#         start_time = time.time()
 
-def load_preprocessed_text(file_path):
-    with open(file_path, 'rb') as file:
-        start_time = time.time()
+#         print(f'Load cleaned tokens file {file_path}...')
+#         tokens = pickle.load(file)
+#         print(f'...tokens loaded in {utils.get_minutes(start_time)}')
 
-        print(f'Load cleaned tokens file {file_path}...')
-        tokens = pickle.load(file)
-        print(f'...tokens loaded in {utils.get_minutes(start_time)}')
-
-    return tokens
-
-
-def to_lower(data):
-    return data.map(lambda txt: txt.lower())
+#     return tokens
 
 
 def decontract(sentence):
@@ -98,28 +91,22 @@ def decontract(sentence):
     return sentence
 
 
-def get_initial_tokens(data):
-    return data.apply(word_tokenize)
-
-
-def toLowerCase(array):
-    return [token.lower() for token in array]
-
-
-def retrieve_lemmas(data):
+def retrieve_lemmas(sentences_tokens: list[list[str]]) -> list[list[str]]:
     ''' remove stop-words and non alpha, also lemmatize words'''
-    stop_words = stopwords.words('english')
     wml = WordNetLemmatizer()
+    stop_words = stopwords.words('english')
 
-    toRet = []
-    for array in data:
-        toRet.append(
-            [wml.lemmatize(word) for word in array if word not in stop_words and word.isalpha()])
+    # toRet = []
+    # for array in data:
+    #     toRet.append(
+    #         [[wml.lemmatize(word) for word in array if word not in stop_words and word.isalpha()] for array in data ])
 
-    return toRet
+    # return toRet
 
-# extract word embedding
+    return [[wml.lemmatize(word) for word in array if word.isalpha() and word not in stop_words] for array in sentences_tokens]
 
+
+# extract word embedding  -----------------
 
 def extract_word_embedding(path):
     # path = 'glove.6B/glove.6B.100d.txt'
