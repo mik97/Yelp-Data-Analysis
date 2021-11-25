@@ -7,6 +7,14 @@ def pickled_file_name(name):
     return f'{const.pkl_path}{name}.pkl'
 
 
+def word_embedding_matrix_file_name(name, type):
+    return f'{const.embedding_path}{name}.{type}'
+
+
+def pickled_embedding_matrix_file_name(name):
+    return f'{const.embedding_matrix_path}{name}_embedding_matrix.npy'
+
+
 def balanced_data_file_name(dataset_type, balanced_name):
     return f'{const.data_csv_path}balanced_{dataset_type}_{balanced_name}.csv'
 
