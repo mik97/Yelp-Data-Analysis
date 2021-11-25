@@ -25,6 +25,10 @@ def task1_pipeline():
     review_data = Dataset('review', 'sentiment')
     review_data.split(['text'], 'sentiment', n_samples=500_000)
 
+    # TODO train set ->  fit tokenizer, get tokens, e embedding matrix
+    # TODO val set -> get tokens using training tokenizer
+    # TODO test set -> get tokens using training tokenizer
+
     preprocessed_text = preprocess_text(review_data.train_data[0])
     print("Preprocessed text: ", preprocessed_text)
 
