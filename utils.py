@@ -1,4 +1,5 @@
 
+import pickle
 import const
 import time
 
@@ -31,8 +32,12 @@ def plot_file_name(name):
     return f'{const.plots_path}{name}.png'
 
 
-def get_tokens_file(task_name):
-    return f'{const.pkl_path}tokens_{task_name}.pkl'
+def get_tokens_file(set, task):
+    return f'{const.pkl_path}{task}_{set}_tokens.pkl'
+
+
+def get_cleaned_sen_file(set, task):
+    return f'{const.pkl_path}{task}_{set}_cleaned_sentences.pkl'
 
 
 def get_w2v_file(task_name):
@@ -41,3 +46,8 @@ def get_w2v_file(task_name):
 
 def get_minutes(start_time):
     return round(((time.time() - start_time)/60), 2)
+
+
+def save_pickled(path, data):
+    with open(path, 'wb') as f:
+        pickle.dump(data, f)
