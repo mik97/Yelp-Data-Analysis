@@ -1,5 +1,7 @@
 from math import pi
 import os
+
+from tensorflow.python.keras.preprocessing.text import Tokenizer
 from classes.dataset import Dataset
 import preprocessing as prep_utils
 
@@ -17,17 +19,9 @@ def task1_pipeline():
     # tokenize(preprocessed text)
     # create embedding matrix
 
-    # TODO fix training prep
-    # ---------
-    cleaned_train = prep_utils.preprocess_text(
-        review_data.train_data[0]['text'])
+    train_tokens, tokenizer = get_set_tokens_tokenizer(
+        review_data.test_data[0]['text'], set='test', task='task1')
 
-    # get tokenizer (it's the same trained on train set also for val and test set)
-    tokenizer = prep_utils.get_tokenizer(cleaned_train)
-
-    train_tokens = prep_utils.tokenize(cleaned_train, tokenizer)
-
-    # ---------
     test_tokens = get_set_tokens(
         review_data.test_data[0]['text'], tokenizer, set='test', task='task1')
 
@@ -40,13 +34,29 @@ def task1_pipeline():
     e_matrix = prep_utils.get_embedding_matrix(const.word_embedding_file, 'task1',
                                                tokenizer, len(tokenizer.index_word)+1)
 
-    # TODO train set ->  get tokens using training tokenizer
-    # TODO val set -> get tokens using training tokenizer
-    # TODO test set -> get tokens using training tokenizer
-
     # TODO RNN
 
     # TODO trasformers
+
+
+def get_set_tokens_tokenizer(texts, set='', task=''):
+    # path file for cleaned texts
+    cleaned_texts_file = utils.get_cleaned_sen_file(
+        set, task)
+
+    # path file for tokens
+    tokens_file = utils.get_tokens_file(set, task)
+
+    # if it doesnt'exist, we have to calculate it (we need the cleaned sentences)
+    cleaned_texts = utils.load_pickled(cleaned_texts_file) if os.path.exists(cleaned_texts_file) else prep_utils.preprocess_text(
+        texts, path=cleaned_texts_file)
+
+    tokenizer = prep_utils.get_tokenizer(cleaned_texts)
+
+    tokens = utils.load_pickled(tokens_file) if os.path.exists(
+        tokens_file) else prep_utils.tokenize(cleaned_texts, tokenizer, path=tokens_file)
+
+    return tokens, tokenizer
 
 
 def get_set_tokens(texts, tokenizer, set='', task=''):
@@ -58,10 +68,10 @@ def get_set_tokens(texts, tokenizer, set='', task=''):
     tokens_file = utils.get_tokens_file(set, task)
 
     if os.path.exists(tokens_file):  # if they already exists, load them
-        return pickle.load(tokens_file)  # tokens
+        return utils.load_pickled(tokens_file)  # tokens
 
     # if it doesnt'exist, we have to calculate it (we need the cleaned sentences)
-    cleaned_texts = pickle.load(cleaned_texts_file) if os.path.exists(cleaned_texts_file) else prep_utils.preprocess_text(
+    cleaned_texts = utils.load_pickled(cleaned_texts_file) if os.path.exists(cleaned_texts_file) else prep_utils.preprocess_text(
         texts, path=cleaned_texts_file)
 
     return prep_utils.tokenize(cleaned_texts, tokenizer)
