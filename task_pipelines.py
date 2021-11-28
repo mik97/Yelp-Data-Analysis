@@ -20,7 +20,7 @@ def task1_pipeline():
     # create embedding matrix
 
     train_tokens, tokenizer = get_set_tokens_tokenizer(
-        review_data.test_data[0]['text'], set='test', task='task1')
+        review_data.train_data[0]['text'], set='train', task='task1')
 
     test_tokens = get_set_tokens(
         review_data.test_data[0]['text'], tokenizer, set='test', task='task1')
@@ -74,4 +74,4 @@ def get_set_tokens(texts, tokenizer, set='', task=''):
     cleaned_texts = utils.load_pickled(cleaned_texts_file) if os.path.exists(cleaned_texts_file) else prep_utils.preprocess_text(
         texts, path=cleaned_texts_file)
 
-    return prep_utils.tokenize(cleaned_texts, tokenizer)
+    return prep_utils.tokenize(cleaned_texts, tokenizer, path=tokens_file)

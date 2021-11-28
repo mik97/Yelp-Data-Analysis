@@ -24,6 +24,7 @@ utility = {
 }
 
 tokenize_counter = 0
+n_sentences = 0
 
 
 def get_tokenizer(sentences: list[str]) -> Tokenizer:
@@ -44,6 +45,7 @@ def preprocess_text(sentences: list[str], path=None) -> list[str]:
     Return (list of cleaned sentences, max sentence lenght)
     '''
     global n_sentences
+    global tokenize_counter
     n_sentences = len(sentences)
 
     print('Processing phase: cleaning the sentences...')
@@ -67,6 +69,8 @@ def preprocess_text(sentences: list[str], path=None) -> list[str]:
     if path != None:
         utils.save_pickled(path, detokenized_texts)
 
+    tokenize_counter = 0
+    n_sentences = 0
     return detokenized_texts
 
 
@@ -117,7 +121,7 @@ def extract_word_embedding(path):
     print(f'Reading pretrained word embedding from {path}...')
     with open(path, encoding='utf8') as f:
         for index, line in enumerate(f):
-            if (index % 1000 == 0):
+            if (index % 50_000 == 0):
                 print(f'\t{index} words loaded')
 
             values = line.split()
