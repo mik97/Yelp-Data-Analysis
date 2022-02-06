@@ -1,39 +1,43 @@
 # In order to speed up the first loading, if the dataset pickled version doesn't exist,
 # we load the entire version from original csv and then pickle it.
 
-import time
-import os
-
-import const
-import utils
+from sklearn.utils import shuffle
 
 import pandas as pd
-from sklearn.utils import shuffle
+
+import libraries.utils as utils
+import constants as const
+import time
+import os
 
 
 def load_dataset(type):
     '''
     Load the entire dataset from Yelp if balanced version doesn't already exist.
 
-    Parameters:
+    Params:
         dataset type (string): "business", "checkin", "review", "tip" or "user". '''
 
-    path = utils.pickled_file_name(type)
+    print(f"Loading {type} dataset...")
 
     df_dataset = None
 
-    print(f"Loading {type} dataset...")
-    if os.path.exists(path):
-        unpickle_file(path)
+    pickled_data_path = utils.pickled_file_name(type)
+
+    if os.path.exists(pickled_data_path):
+        # read pickled version
+        df_dataset = unpickle_file(pickled_data_path)
     else:
-        # read directly the csv and the save it as a pickled version
-        print(f"\tReading {path}...")
+        # read directly the json and the save it as a pickled version
+        data_path = utils.dataset_file_name(type)
+
+        print(f"\tReading {data_path}...")
         start_time = time.time()
 
         total = []
         # remember: each chunk is a regular dataframe object
         # 864 chunks w chunk == 10_000
-        for chunk_index, chunk in enumerate(pd.read_json(utils.dataset_file_name(type), lines=True, orient="records", chunksize=10_000)):
+        for chunk_index, chunk in enumerate(pd.read_json(data_path, lines=True, orient="records", chunksize=10_000)):
             total.append(_handle_chunk(chunk, type))
 
             if (chunk_index % 50 == 0):
@@ -42,7 +46,8 @@ def load_dataset(type):
         df_dataset = pd.concat(total, ignore_index=True)
 
         print(f"\tFile loaded in {utils.get_minutes(start_time)} minutes")
-        pd.to_pickle(df_dataset, path)
+
+        pd.to_pickle(df_dataset, pickled_data_path)
 
     print("Loaded dataset with {0} rows and {1} columns".format(
         df_dataset.shape[0], df_dataset.shape[1]))
@@ -70,13 +75,13 @@ def _handle_chunk(chunk, type):
     return chunk
 
 
-# 500_000
 def get_balanced_subset(dataset_name, column_to_balance, n_samples):
     ''' 
         dataset_name: 'review', 'tips' ...
         column_to_balance: name of the column to balance,
         n_samples: samples to get for each balance
     '''
+    # 500_000 samples
     csv_filepath = utils.balanced_data_file_name(
         dataset_name, column_to_balance)
 
@@ -134,82 +139,3 @@ def load_subset(path):
     print(f"File loaded in {utils.get_minutes(start_time)} minutes")
 
     return df_dataset
-
-# def analyze(df, type):
-#     #  create the folder where to save the plots
-#     # checkPlotFolder()
-
-#     if (type == 'review'):
-#         checkPlotFolder('review')
-#         savePath = const.plots_path + '/review/'
-
-#         # how many sample for each stars rating
-#         starsCounted = df["stars"].value_counts().sort_index()
-
-#         plt.bar(['1', '2', '3', '4', '5'], starsCounted)
-#         plt.title("Review ratings count")
-
-#         saveFigure(savePath + "reviewRatingsCount.jpg")
-
-#         # how many positive or negative samples
-#         sentValues = df['sentiment'].value_counts().sort_index()
-
-#         plt.bar(['negative', 'positive'], sentValues, width=0.5)
-#         plt.title("Positive and negative sentiment count")
-
-#         saveFigure(savePath + "posNegSentimentCount.jpg")
-
-
-# def checkPlotFolder(type=None):
-#     directory_to_create = const.plots_path
-
-#     if (type):
-#         directory_to_create += '/%s' % type
-
-#     if (not os.path.exists(directory_to_create)):
-#         try:
-#             os.makedirs(directory_to_create)
-#         except OSError:
-#             print("Creation of the directory %s failed" % directory_to_create)
-#         else:
-#             print("Successfully created of the directory %s" %
-#                   directory_to_create)
-
-
-# def checkDataFolder():
-#     if not os.path.exists('./data'):
-#         try:
-#             os.makedirs('./data')
-#         except:
-#             print('Creation of th directory ./data failed')
-#         else:
-#             print('Successfully created of the directory ./data')
-
-
-# def checkDatasetBalancedFolder():
-#     if not os.path.exists('./balanced_dataset'):
-#         try:
-#             os.makedirs('./balanced_dataset')
-#         except:
-#             print('Creation of th directory ./balanced_dataset failed')
-#         else:
-#             print('Successfully created of the directory ./balanced_dataset')
-
-# def checkW2vModelsFolder():
-#     if not os.path.exists('./w2v_models'):
-#         try:
-#             os.makedirs('./w2v_models')
-#         except:
-#             print('Creation of th directory ./w2v_models failed')
-#         else:
-#             print('Successfully created of the directory ./w2v_models')
-
-
-# def saveFigure(filepath):
-#     try:
-#         if os.path.exists(filepath):
-#             os.remove(filepath)
-#         plt.savefig(filepath)
-#     except FileNotFoundError:
-#         print('%s not found' % filepath)
-#     plt.clf()

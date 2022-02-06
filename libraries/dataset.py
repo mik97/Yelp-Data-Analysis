@@ -1,9 +1,10 @@
 
 from sklearn.model_selection import train_test_split
-import const
-import data_handler
-import utils
+
 import os
+import constants as const
+import libraries.data_handler as data_handler
+import libraries.utils as utils
 
 
 class Dataset():
@@ -12,15 +13,18 @@ class Dataset():
 
     def __init__(self, dataset_name, column_to_balance):
         '''
-        dataset_name: 'review', 'business'
-        column_to_balance: name
+        Params: 
+            dataset_name: 'review' or 'business'
+            column_to_balance: name of the column on which the dataset balancing belongs
         '''
         self.dataset_name = dataset_name
         self.column_to_balance = column_to_balance
+
+        # init subset names
         self.subsets_files = {
-            'train': utils.data_file_name(self.dataset_name, self.column_to_balance, 'train'),
-            'val': utils.data_file_name(self.dataset_name, self.column_to_balance, 'val'),
-            'test': utils.data_file_name(self.dataset_name, self.column_to_balance, 'test')
+            'train': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'train'),
+            'val': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'val'),
+            'test': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'test')
 
         }
 
@@ -29,10 +33,10 @@ class Dataset():
         self.test_data = None
 
     def split(self, x_columns, target, val_size=0.01, test_size=0.01, n_samples=500_000):
-        ''' Load splitted versions or split here'''
+        ''' Load splitted versions (if already exist) or split the data here'''
 
-        if all([os.path.exists(path) for path in list(self.subsets_files.values())]):
-            # load existing files
+        if all([os.path.exists(subset_path) for subset_path in list(self.subsets_files.values())]):
+            # load existing files if they exist
             train = data_handler.load_subset(self.subsets_files['train'])
             self.train_data = (train[x_columns], train[target])
 
@@ -41,12 +45,12 @@ class Dataset():
 
             test = data_handler.load_subset(self.subsets_files['test'])
             self.test_data = (test[x_columns], test[target])
-
         else:
             data = data_handler.get_balanced_subset(
                 self.dataset_name, self.column_to_balance, n_samples)
 
-            self._split(data[x_columns], data[target], val_size, test_size)
+            self._split(data[x_columns], data[target], val_size,
+                        test_size)  # split and save inas csv
 
     def _split(self, x_data, y_data, val_size, test_size):
 
