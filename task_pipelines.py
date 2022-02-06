@@ -1,16 +1,18 @@
+from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
+from tensorflow.keras.initializers import Constant
+from tensorflow.keras import Sequential
+import utils
+import const
+import preprocessing as prep_utils
+from classes.dataset import Dataset
+from tensorflow.python.keras.preprocessing.text import Tokenizer
 from math import pi
 import os
-
-from tensorflow.python.keras.preprocessing.text import Tokenizer
-from classes.dataset import Dataset
-import preprocessing as prep_utils
-
-import const
-import utils
-import pickle
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def task1_pipeline():
+
     review_data = Dataset('review', 'sentiment')
     review_data.split(['text'], 'sentiment', n_samples=500_000)
 
@@ -21,6 +23,7 @@ def task1_pipeline():
 
     train_tokens, tokenizer = get_set_tokens_tokenizer(
         review_data.train_data[0]['text'], set='train', task='task1')
+    # tokenizer = Tokenizer()
 
     test_tokens = get_set_tokens(
         review_data.test_data[0]['text'], tokenizer, set='test', task='task1')
@@ -35,6 +38,21 @@ def task1_pipeline():
                                                tokenizer, len(tokenizer.index_word)+1)
 
     # TODO RNN
+    embedding_size = 32
+
+    word_vector_dim = 100
+    vocab_size = len(tokenizer.word_index) + 1
+
+    max_length = len(max(train_tokens, key=len))
+
+    embedding_layer = Embedding(vocab_size, word_vector_dim,
+                                embeddings_initializer=Constant(e_matrix), trainable=False)
+
+    model = Sequential()
+    model.add(embedding_layer)  # the embedding layer
+    model.add(LSTM(20))
+
+    print('j')
 
     # TODO trasformers
 

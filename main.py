@@ -1,4 +1,5 @@
 import task_pipelines as tp
+import tensorflow as tf
 
 
 def main():
@@ -11,7 +12,8 @@ def review_dataset_tasks():
     '''
     # TODO some statistics and visualization
 
-    tp.task1_pipeline()
+    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+    # tp.task1_pipeline()
 
 
 if __name__ == "__main__":
