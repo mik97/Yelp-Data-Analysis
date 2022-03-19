@@ -9,6 +9,9 @@ pickled_path = data_path + "pickled/"
 checkpoints_path = data_path + "checkpoints/"
 models_path = "./models/"
 
+tuner_path = "/tmp/tb/"
+logs_path = "/tmp/tb_logs/"
+
 # chosen embedding data
 word_embedding_filepath = embedding_path + \
     "glove.twitter.27B.100d.txt"

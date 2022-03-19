@@ -130,8 +130,8 @@ def get_padded_tokens(texts, set='', task=''):
     cleaned_texts_filepath = utils.cleaned_sentences_file(
         set, task)
 
-    # path file for tokens
-    tokens_filepath = utils.tokens_file_name(set, task)
+    # # path file for tokens
+    # tokens_filepath = utils.tokens_file_name(set, task)
 
     # if it doesnt'exist, we have to calculate it (we need the cleaned sentences)
     cleaned_texts = utils.load_pickled(cleaned_texts_filepath) if os.path.exists(cleaned_texts_filepath) else preprocess_texts(
