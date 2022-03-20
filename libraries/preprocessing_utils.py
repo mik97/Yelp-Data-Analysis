@@ -27,7 +27,7 @@ tokenizer_counter = 0
 n_sentences = 0
 
 
-def preprocess_texts(sentences: list[str], path=None) -> list[str]:
+def preprocess_texts(sentences, path=None):
     '''Given a list of texts, return list of cleaned texts.
 
     Preprocessing tasks: lowercasing, decontractions, stop-word removing, lemmatization 
@@ -102,7 +102,7 @@ def decontract(sentence):
 #  -----------------utils for neural net modeling -------------------------
 
 
-def get_tokenizer(sentences: list[str]) -> Tokenizer:
+def get_tokenizer(sentences) -> Tokenizer:
     ''' 
         Sentences: preprocessed sentences 
     '''
@@ -114,7 +114,7 @@ def get_tokenizer(sentences: list[str]) -> Tokenizer:
     return tokenizer
 
 
-def _tokenize(sequences: list[str], tokenizer: Tokenizer, max_len: int = None, path=None) -> np.ndarray:
+def _tokenize(sequences, tokenizer, max_len=None, path=None):
     ''' Return padded sequences of tokens'''
     tokens = tokenizer.texts_to_sequences(sequences)
     padded_tokens = pad_sequences(tokens, maxlen=max_len)
