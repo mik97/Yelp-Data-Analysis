@@ -82,7 +82,7 @@ def get_balanced_subset(dataset_name, column_to_balance, n_samples):
         n_samples: samples to get for each balance
     '''
     # 500_000 samples
-    csv_filepath = utils.balanced_data_file_name(
+    csv_filepath = utils.balanced_data_total_file_name(
         dataset_name, column_to_balance)
 
     balanced_df = None

@@ -14,6 +14,10 @@ def embedding_matrix_pkl_file_name(name):
     return f'{const.embedding_path}{name}_embedding_matrix.npy'
 
 
+def balanced_data_total_file_name(dataset_type, balanced_name):
+    return f'{const.data_path}balanced_{dataset_type}_{balanced_name}.csv'
+
+
 def balanced_data_file_name(dataset_type, balanced_name, set_type):
     return f'{const.data_path}balanced_{dataset_type}_{balanced_name}_{set_type}.csv'
 
