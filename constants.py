@@ -2,11 +2,10 @@
 # files name [user, review, business, checkin, tip]
 yelp_path = "../yelp dataset/"
 
-data_path = "./data/"
+data_path = "./data_100_000/"
 embedding_path = data_path + "embedding/"
 pickled_path = data_path + "pickled/"
 
-checkpoints_path = data_path + "checkpoints/"
 models_path = "./models/"
 
 tuner_path = "/tmp/tb/"
