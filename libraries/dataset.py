@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import os
 import constants as const
 import libraries.data_handler as data_handler
-import libraries.utils as utils
+import libraries.filenames_generator as filenames
 
 
 class Dataset():
@@ -22,9 +22,9 @@ class Dataset():
 
         # init subset names
         self.subsets_files = {
-            'train': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'train'),
-            'val': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'val'),
-            'test': utils.balanced_data_file_name(self.dataset_name, self.column_to_balance, 'test')
+            'train': filenames.balanced_subset(self.dataset_name, self.column_to_balance, 'train'),
+            'val': filenames.balanced_subset(self.dataset_name, self.column_to_balance, 'val'),
+            'test': filenames.balanced_subset(self.dataset_name, self.column_to_balance, 'test')
 
         }
 

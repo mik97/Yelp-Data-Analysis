@@ -6,11 +6,13 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+from libraries import utils
 from typing import Counter
 
 import numpy as np
 
-import libraries.utils as utils
+import libraries.filenames_generator as filenames
+
 import re
 import os
 
@@ -38,7 +40,7 @@ def preprocess_texts(sentences, path=None):
     if os.path.exists(path):
         print(f'Loading pickled cleaned sentences data from {path}...')
         return utils.load_pickled(path)
-   
+
     global tokenizer_counter
     global n_sentences
     n_sentences = len(sentences)
@@ -132,7 +134,7 @@ def _tokenize(sequences, tokenizer, max_len=None, path=None):
 
 def get_padded_tokens(texts, set='', task=''):
     # path file for cleaned texts
-    cleaned_texts_filepath = utils.cleaned_sentences_file(
+    cleaned_texts_filepath = filenames.picked_cleaned_sentences(
         set, task)
 
     # # path file for tokens
@@ -149,11 +151,11 @@ def get_padded_tokens(texts, set='', task=''):
 
 def get_set_tokens(texts, tokenizer, set='', task=''):
     # path file for cleaned texts
-    cleaned_texts_file = utils.cleaned_sentences_file_name(
+    cleaned_texts_file = filenames.picked_cleaned_sentences(
         set, task)
 
     # path file for tokens
-    tokens_file = utils.tokens_file_name(set, task)
+    tokens_file = filenames.pickled_tokens(set, task)
 
     if os.path.exists(tokens_file):  # if they already exists, load them
         return utils.load_pickled(tokens_file)  # tokens
@@ -193,7 +195,7 @@ def get_embedding_matrix(word_emb_path, task_name, tokenizer, vocab_size):
         '''
     ''' Create embedding matrix'''
     # task1_embedding_matrix.npy
-    pickled_matrix_path = utils.embedding_matrix_pkl_file_name(task_name)
+    pickled_matrix_path = filenames.embedding_matrix_pkl_file_name(task_name)
 
     if not os.path.exists(pickled_matrix_path):
         embedding_indexes = extract_word_embedding(word_emb_path)

@@ -3,12 +3,14 @@
 
 from sklearn.utils import shuffle
 
-import pandas as pd
+from libraries import utils
 
-import libraries.utils as utils
-import constants as const
+import pandas as pd
 import time
 import os
+
+import libraries.filenames_generator as filenames
+import constants as const
 
 
 def load_dataset(type):
@@ -20,34 +22,22 @@ def load_dataset(type):
 
     print(f"Loading {type} dataset...")
 
-    df_dataset = None
+    data_path = filenames.dataset(type)
 
-    pickled_data_path = utils.pickled_file_name(type)
+    start_time = time.time()
+    total = []
 
-    if os.path.exists(pickled_data_path):
-        # read pickled version
-        df_dataset = unpickle_file(pickled_data_path)
-    else:
-        # read directly the json and the save it as a pickled version
-        data_path = utils.dataset_file_name(type)
+    # remember: each chunk is a regular dataframe object
+    # 864 chunks w chunk == 10_000
+    for chunk_index, chunk in enumerate(pd.read_json(data_path, lines=True, orient="records", chunksize=10_000)):
+        total.append(_handle_chunk(chunk, type))
 
-        print(f"\tReading {data_path}...")
-        start_time = time.time()
+        if (chunk_index % 50 == 0):
+            print(f"\t\t{chunk_index} chunks loaded")
 
-        total = []
-        # remember: each chunk is a regular dataframe object
-        # 864 chunks w chunk == 10_000
-        for chunk_index, chunk in enumerate(pd.read_json(data_path, lines=True, orient="records", chunksize=10_000)):
-            total.append(_handle_chunk(chunk, type))
+    df_dataset = pd.concat(total, ignore_index=True)
 
-            if (chunk_index % 50 == 0):
-                print(f"\t\t{chunk_index} chunks loaded")
-
-        df_dataset = pd.concat(total, ignore_index=True)
-
-        print(f"\tFile loaded in {utils.get_minutes(start_time)} minutes")
-
-        pd.to_pickle(df_dataset, pickled_data_path)
+    print(f"\tFile loaded in {utils.get_minutes(start_time)} minutes")
 
     print("Loaded dataset with {0} rows and {1} columns".format(
         df_dataset.shape[0], df_dataset.shape[1]))
@@ -82,7 +72,7 @@ def get_balanced_subset(dataset_name, column_to_balance, n_samples):
         n_samples: samples to get for each balance
     '''
     # 500_000 samples
-    csv_filepath = utils.balanced_data_total_file_name(
+    csv_filepath = filenames.balanced_set(
         dataset_name, column_to_balance)
 
     balanced_df = None
