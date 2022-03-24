@@ -35,6 +35,10 @@ def preprocess_texts(sentences, path=None):
     Returns
         list of cleaned sentences
     '''
+    if os.path.exists(path):
+        print(f'Loading pickled cleaned sentences data from {path}...')
+        return utils.load_pickled(path)
+   
     global tokenizer_counter
     global n_sentences
     n_sentences = len(sentences)
@@ -55,8 +59,9 @@ def preprocess_texts(sentences, path=None):
     cleaned_texts = [
         word_detokenizer.detokenize(sentence) for sentence in cleaned_tokens]
 
-    utils.save_pickled(path, cleaned_texts)
-    print(f'\tTokens saved at {path}')
+    if path:
+        utils.save_pickled(path, cleaned_texts)
+        print(f'\tTokens saved at {path}')
 
     tokenizer_counter = 0
     n_sentences = 0

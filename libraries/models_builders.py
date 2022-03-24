@@ -1,23 +1,30 @@
-import tensorflow.keras as keras
+import keras_tuner as kt
+import constants as const
+
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras import Sequential
 
 
-def rnn_builder(hp, dropout, units, lr, embedding_layer):
-    # Define the hyperparams
-    dropout = hp.Choice("dropout", [0.2, 0.5])
-    lstm_units = hp.Choice("units", [15, 20, 50])
-    lr = hp.Choice("lr", [0.01, 0.001])
+def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
+    ''' Returns a function for build rnn model with custon hyperparams values'''
 
-    model = Sequential()
-    model.add(embedding_layer)  # the embedding layer
-    model.add(LSTM(lstm_units, dropout=dropout))
-    # if dropout:
-    #     model.add(Dropout(0.2))
-    model.add(Dense(1, activation='sigmoid'))
+    def rnn_builder(hp):
+        # Define the hyperparams
+        dropout = hp.Choice("dropout", drop)
+        lstm_units = hp.Choice("units", units)
+        lr = hp.Choice("lr", lrate)
 
-    opt = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(optimizer=opt, loss='binary_crossentropy',
-                  metrics=['accuracy'])
+        model = Sequential()
 
-    return model
+        model.add(embedding_layer)  # the embedding layer
+        model.add(LSTM(lstm_units, dropout=dropout))
+        model.add(Dense(1, activation='sigmoid'))
+
+        opt = optimizer(learning_rate=lr)
+
+        model.compile(optimizer=opt, loss='binary_crossentropy',
+                      metrics=['accuracy'])
+
+        return model
+
+    return rnn_builder
