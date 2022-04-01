@@ -9,6 +9,7 @@ from nltk.stem import WordNetLemmatizer
 from libraries import utils
 from typing import Counter
 
+import nltk
 import numpy as np
 
 import libraries.filenames_generator as filenames
@@ -16,9 +17,9 @@ import libraries.filenames_generator as filenames
 import re
 import os
 
-
-# nltk.download('stopwords')
-# nltk.download('wordnet')
+nltk.download('omw-1.4')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
 utilities = {
     "wml": WordNetLemmatizer(),
