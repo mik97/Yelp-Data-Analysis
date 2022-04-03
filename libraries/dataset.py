@@ -57,8 +57,6 @@ class Dataset():
         x_train, x_test, y_train, y_test = train_test_split(
             x_data, y_data, test_size=test_size, random_state=const.seed)
 
-        print(x_train, y_train)
-
         # adjust % validation set
         # tot_samples : 100 = x : val %
         n_val_samples = x_data.shape[0] * val_size
