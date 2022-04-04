@@ -3,9 +3,11 @@ __pycache__/
 
 # and all subfolders
 *data/**/*.*
+*data_100_000/**/*.*
 plots/**/*.*
 
 # exclude gitkeep
 !**/.gitkeep
 
+logs/*
 test.*
