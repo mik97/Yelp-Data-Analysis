@@ -21,5 +21,9 @@ def pickled_tokens(set, task):
     return f'{const.pickled_path}{task}_{set}_tokens.pkl'
 
 
+def pickled_dataset(type):
+    return f'{const.pickled_path}{type}.pkl'
+
+
 def picked_cleaned_sentences(set, task):
     return f'{const.pickled_path}{task}_{set}_cleaned_sentences.pkl'

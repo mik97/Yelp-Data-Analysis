@@ -20,11 +20,15 @@ def load_dataset(type):
     Params:
         dataset type (string): "business", "checkin", "review", "tip" or "user". '''
 
-    print(f"Loading {type} dataset...")
+    pickled_path = filenames.pickled_dataset(type)
+
+    if os.path.exists(pickled_path):
+        return unpickle_file(pickled_path)
 
     data_path = filenames.dataset(type)
 
-    start_time = time.time()
+    print(f"Loading {type} dataset...")
+
     total = []
 
     # remember: each chunk is a regular dataframe object
@@ -37,10 +41,10 @@ def load_dataset(type):
 
     df_dataset = pd.concat(total, ignore_index=True)
 
-    print(f"\tFile loaded in {utils.get_minutes(start_time)} minutes")
+    df_dataset.to_pickle(pickled_path)
 
-    print("Loaded dataset with {0} rows and {1} columns".format(
-        df_dataset.shape[0], df_dataset.shape[1]))
+    print("Loaded dataset with {0} rows and {1} columns and saved in {2}".format(
+        df_dataset.shape[0], df_dataset.shape[1], pickled_path))
 
     return df_dataset
 
@@ -59,8 +63,17 @@ def _handle_chunk(chunk, type):
     ''' i.e for review dataset add sentiment column'''
 
     if (type == 'review'):
+        #  add sentiment
         chunk.loc[chunk['stars'] <= 3, 'sentiment'] = 0
         chunk.loc[chunk['stars'] > 3, 'sentiment'] = 1
+
+        #  add usefulness
+        chunk.loc[chunk['useful'] <= 5, 'usefulness'] = 'not useful'
+        chunk.loc[(chunk['useful'] > 6) & (chunk['useful']
+                  <= 25), 'usefulness'] = 'moderately useful'
+        chunk.loc[chunk['useful'] > 25, 'usefulness'] = 'extremely useful'
+
+        return chunk
 
     return chunk
 
@@ -71,7 +84,6 @@ def get_balanced_subset(dataset_name, column_to_balance, n_samples):
         column_to_balance: name of the column to balance,
         n_samples: samples to get for each balance
     '''
-    # 500_000 samples
     csv_filepath = filenames.balanced_set(
         dataset_name, column_to_balance)
 
@@ -102,11 +114,20 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
 
     if dataset_name == 'review':
         if column_to_balance == 'sentiment':
-            negSamples = data.loc[data['sentiment'] == 0].sample(n_samples)
-            posSamples = data.loc[data['sentiment'] == 1].sample(n_samples)
+            s1 = data.loc[data['sentiment'] == 0].sample(n_samples)
+            s2 = data.loc[data['sentiment'] == 1].sample(n_samples)
 
             to_ret = shuffle(
-                pd.concat([negSamples, posSamples]), random_state=const.seed).reset_index()
+                pd.concat([s1, s2]), random_state=const.seed).reset_index()
+
+        elif column_to_balance == 'usefulness':
+            s1 = data.loc[data['usefulness'] == 'not useful'].sample(n_samples)
+            s2 = data.loc[data['usefulness'] ==
+                          'moderately useful'].sample(n_samples)
+            s3 = data.loc[data['usefulness'] ==
+                          'extremely useful'].sample(n_samples)
+            to_ret = shuffle(
+                pd.concat([s1, s2, s3]), random_state=const.seed).reset_index()
 
     return to_ret
 
