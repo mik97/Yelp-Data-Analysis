@@ -79,7 +79,7 @@ def _handle_chunk(chunk, type):
 
 
 def get_balanced_subset(dataset_name, column_to_balance, n_samples):
-    ''' 
+    '''
         dataset_name: 'review', 'tips' ...
         column_to_balance: name of the column to balance,
         n_samples: samples to get for each balance
@@ -121,11 +121,14 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
                 pd.concat([s1, s2]), random_state=const.seed).reset_index()
 
         elif column_to_balance == 'usefulness':
-            s1 = data.loc[data['usefulness'] == 'not useful'].sample(n_samples)
+            counts = data['usefulness'].value_counts()
+
+            s1 = data.loc[data['usefulness'] == 'not useful'].sample(
+                min(n_samples, counts['not useful']))
             s2 = data.loc[data['usefulness'] ==
-                          'moderately useful'].sample(n_samples)
+                          'moderately useful'].sample(min(n_samples, counts['moderately useful']))
             s3 = data.loc[data['usefulness'] ==
-                          'extremely useful'].sample(n_samples)
+                          'extremely useful'].sample(min(n_samples, counts['extremely useful']))
             to_ret = shuffle(
                 pd.concat([s1, s2, s3]), random_state=const.seed).reset_index()
 
