@@ -5,7 +5,7 @@ from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras import Sequential
 
 
-def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
+def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape, activation, loss):
     ''' Returns a function for build rnn model with custon hyperparams values'''
 
     def rnn_builder(hp):
@@ -18,11 +18,12 @@ def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
 
         model.add(embedding_layer)  # the embedding layer
         model.add(LSTM(lstm_units, dropout=dropout))
-        model.add(Dense(1, activation='sigmoid'))
+
+        model.add(Dense(output_shape, activation=activation))
 
         opt = optimizer(learning_rate=lr)
 
-        model.compile(optimizer=opt, loss='binary_crossentropy',
+        model.compile(optimizer=opt, loss=loss,
                       metrics=['accuracy'])
 
         return model
