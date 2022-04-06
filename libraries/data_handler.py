@@ -69,7 +69,7 @@ def _handle_chunk(chunk, type):
 
         #  add usefulness
         chunk.loc[chunk['useful'] <= 5, 'usefulness'] = 'not useful'
-        chunk.loc[(chunk['useful'] > 6) & (chunk['useful']
+        chunk.loc[(chunk['useful'] > 5) & (chunk['useful']
                   <= 25), 'usefulness'] = 'moderately useful'
         chunk.loc[chunk['useful'] > 25, 'usefulness'] = 'extremely useful'
 
