@@ -32,7 +32,7 @@ def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape
 
 
 # NOTA: hub.kerasLayer -> wrappa un SavedModel (scaricato dall'hub) in un keras layer
-def build_BERT_model(handle_preprocess, handle_encoder):
+def build_BERT_model(handle_preprocess, handle_encoder, output_shape):
     # crea un tensore simbolico rappresentante l'input, necessario per la
     # costruzione iniziale del modello keras
     text_input = tf.keras.layers.Input(shape=(), dtype=tf.string, name='text')
@@ -40,6 +40,7 @@ def build_BERT_model(handle_preprocess, handle_encoder):
     # -- creazione preprocessing layer e preprocessing dei dati --
     preprocessing_layer = hub.KerasLayer(
         handle_preprocess, name='preprocessing')
+
     # frasi processate dal preprocessing che saranno inputs dell'encoder
     encoder_inputs = preprocessing_layer(text_input)
 
@@ -47,6 +48,7 @@ def build_BERT_model(handle_preprocess, handle_encoder):
     #  trainable == true for fine tuning
     encoder = hub.KerasLayer(
         handle_encoder, trainable=True, name='BERT_encoder')
+
     outputs = encoder(encoder_inputs)
 
     # -- def net --
@@ -55,6 +57,6 @@ def build_BERT_model(handle_preprocess, handle_encoder):
     net = outputs['pooled_output']
     net = tf.keras.layers.Dropout(0.1)(net)
     # net = tf.keras.layers.Dense(10, activation="relu", name='dense1')(net)
-    net = tf.keras.layers.Dense(1, name='dense2')(net)
+    net = tf.keras.layers.Dense(output_shape, name='dense1')(net)
 
     return tf.keras.Model(text_input, net)
