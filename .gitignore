@@ -9,5 +9,5 @@ plots/**/*.*
 # exclude gitkeep
 !**/.gitkeep
 
-logs/*
-test.*
+results/*
+
