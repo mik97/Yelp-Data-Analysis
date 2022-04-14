@@ -9,6 +9,10 @@ def balanced_set(dataset_type, balanced_name):
     return f'{const.data_path}balanced_{dataset_type}_{balanced_name}.csv'
 
 
+def x_data_new_features(dataset_type, balanced_name, set_type):
+    return f'{const.data_path}new_feat_balanced_{dataset_type}_{balanced_name}_{set_type}.csv'
+
+
 def balanced_subset(dataset_type, balanced_name, set_type):
     return f'{const.data_path}balanced_{dataset_type}_{balanced_name}_{set_type}.csv'
 

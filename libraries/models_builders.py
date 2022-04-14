@@ -5,7 +5,7 @@ from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras import Sequential
 
 
-def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape, loss, activation=None):
+def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape, loss, activation=None, metrics=[]):
     ''' Returns a function for build rnn model with custon hyperparams values'''
 
     def rnn_builder(hp):
@@ -20,8 +20,9 @@ def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape
         model.add(Dense(output_shape, activation=activation))
 
         opt = optimizer(learning_rate=lr)
-        model.compile(optimizer=opt, loss=loss,
-                      metrics=['accuracy'])
+        model.compile(optimizer=opt,
+                      loss=loss,
+                      metrics=metrics)
 
         return model
 
@@ -42,6 +43,7 @@ def build_BERT_model(handle_preprocess, handle_encoder, output_shape, activation
     outputs = encoder(encoder_inputs)
 
     net = outputs['pooled_output']
+
     net = tf.keras.layers.Dropout(0.1)(net)
     net = tf.keras.layers.Dense(
         output_shape, activation=activation, name='dense1')(net)
