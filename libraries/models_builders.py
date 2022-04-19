@@ -49,3 +49,10 @@ def build_BERT_model(handle_preprocess, handle_encoder, output_shape, activation
         output_shape, activation=activation, name='dense1')(net)
 
     return tf.keras.Model(text_input, net)
+
+
+def train_model(estimator, x_data, y_data, x_val_data, y_val_data):
+    estimator.fit(x_data, y_data)
+    score = estimator.score(x_val_data, y_val_data)
+    print(f'\t{score} score')
+    return score
