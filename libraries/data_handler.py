@@ -59,6 +59,36 @@ def unpickle_file(path):
     return unpickled_file
 
 
+def load_subset(path):
+    print(f"Reading {path}...")
+    start_time = time.time()
+
+    total = []
+    # remember: each chunk is a regular dataframe object
+    # 864 chunks w chunk == 10_000
+    for chunk_index, chunk in enumerate(pd.read_csv(path, chunksize=10_000)):
+        total.append(chunk)
+
+        if (chunk_index+1 % 50 == 0):
+            print(f"\t{chunk_index} chunks loaded")
+
+    df_dataset = pd.concat(total, ignore_index=True)
+
+    print(f"File loaded in {utils.get_minutes(start_time)} minutes")
+
+    return df_dataset
+
+
+def add_features(x_data, funs, path=None, to_csv=False):
+    #  funs = {'column to save': fun to create}
+    for column, fun in funs.items():
+        x_data[column] = x_data.apply(fun, axis=1)
+
+    if to_csv and path != None:
+        x_data.to_csv(path)
+        print(f"x dataset with new features saved at {path}")
+
+
 def _handle_chunk(chunk, type):
     ''' i.e for review dataset add sentiment column'''
 
@@ -109,7 +139,7 @@ def get_balanced_subset(dataset_name, column_to_balance, n_samples):
 
 
 def _balance_data(data, dataset_name, column_to_balance, n_samples):
-    ''' Return balanced data base on divverent combinations'''
+    ''' Return balanced data base on different combinations'''
     to_ret = None
 
     if dataset_name == 'review':
@@ -133,23 +163,3 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
                 pd.concat([s1, s2, s3]), random_state=const.seed).reset_index()
 
     return to_ret
-
-
-def load_subset(path):
-    print(f"Reading {path}...")
-    start_time = time.time()
-
-    total = []
-    # remember: each chunk is a regular dataframe object
-    # 864 chunks w chunk == 10_000
-    for chunk_index, chunk in enumerate(pd.read_csv(path, chunksize=10_000)):
-        total.append(chunk)
-
-        if (chunk_index+1 % 50 == 0):
-            print(f"\t{chunk_index} chunks loaded")
-
-    df_dataset = pd.concat(total, ignore_index=True)
-
-    print(f"File loaded in {utils.get_minutes(start_time)} minutes")
-
-    return df_dataset
