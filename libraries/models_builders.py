@@ -5,7 +5,7 @@ from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras import Sequential
 
 
-def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
+def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer, output_shape, activation, loss):
     ''' Returns a function for build rnn model with custon hyperparams values'''
 
     def rnn_builder(hp):
@@ -18,11 +18,12 @@ def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
 
         model.add(embedding_layer)  # the embedding layer
         model.add(LSTM(lstm_units, dropout=dropout))
-        model.add(Dense(1, activation='sigmoid'))
+
+        model.add(Dense(output_shape, activation=activation))
 
         opt = optimizer(learning_rate=lr)
 
-        model.compile(optimizer=opt, loss='binary_crossentropy',
+        model.compile(optimizer=opt, loss=loss,
                       metrics=['accuracy'])
 
         return model
@@ -30,30 +31,24 @@ def get_rnn_builder(drop, units, lrate, optimizer, embedding_layer):
     return rnn_builder
 
 
-# NOTA: hub.kerasLayer -> wrappa un SavedModel (scaricato dall'hub) in un keras layer
-def build_BERT_model(handle_preprocess, handle_encoder):
-    # crea un tensore simbolico rappresentante l'input, necessario per la
-    # costruzione iniziale del modello keras
+
+def build_BERT_model(handle_preprocess, handle_encoder, output_shape, activation=None):
     text_input = tf.keras.layers.Input(shape=(), dtype=tf.string, name='text')
 
-    # -- creazione preprocessing layer e preprocessing dei dati --
     preprocessing_layer = hub.KerasLayer(
         handle_preprocess, name='preprocessing')
-    # frasi processate dal preprocessing che saranno inputs dell'encoder
+
     encoder_inputs = preprocessing_layer(text_input)
 
-    # -- creazione enconder layer e generazione output --
-    #  trainable == true for fine tuning
     encoder = hub.KerasLayer(
         handle_encoder, trainable=True, name='BERT_encoder')
+
     outputs = encoder(encoder_inputs)
 
-    # -- def net --
-    # dense-> dropout -> output
-    # prendiamo in considerazione solo questo output
     net = outputs['pooled_output']
+
     net = tf.keras.layers.Dropout(0.1)(net)
-    # net = tf.keras.layers.Dense(10, activation="relu", name='dense1')(net)
-    net = tf.keras.layers.Dense(1, name='dense2')(net)
+    net = tf.keras.layers.Dense(
+        output_shape, activation=activation, name='dense1')(net)
 
     return tf.keras.Model(text_input, net)
