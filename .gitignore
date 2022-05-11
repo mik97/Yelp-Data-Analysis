@@ -11,3 +11,5 @@ plots/**/*.*
 
 logs/*
 test.*
+
+requirements.txt
