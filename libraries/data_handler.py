@@ -150,6 +150,16 @@ def _balance_data(data, dataset_name, column_to_balance, n_samples):
             to_ret = shuffle(
                 pd.concat([s1, s2]), random_state=const.seed).reset_index()
 
+        elif column_to_balance == 'stars':
+            s1 = data.loc[data['stars'] == 1].sample(n_samples)
+            s2 = data.loc[data['stars'] == 2].sample(n_samples)
+            s3 = data.loc[data['stars'] == 3].sample(n_samples)
+            s4 = data.loc[data['stars'] == 4].sample(n_samples)
+            s5 = data.loc[data['stars'] == 5].sample(n_samples)
+
+            to_ret = shuffle(
+                pd.concat([s1, s2, s3, s4, s5]), random_state=const.seed).reset_index()
+
         elif column_to_balance == 'usefulness':
             counts = data['usefulness'].value_counts()
 
