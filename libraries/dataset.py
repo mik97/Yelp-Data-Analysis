@@ -8,9 +8,6 @@ import libraries.filenames_generator as filenames
 
 
 class Dataset():
-    # based on data analytics slides, a good splitting for huge dataset (>= 1_000_000)
-    # is 0.98 train, 0.01 test ad 0.01 val
-
     def __init__(self, dataset_name, column_to_balance):
         '''
         Params: 
